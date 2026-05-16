@@ -1,40 +1,23 @@
 package game;
+import bagel.Image;
 
-import java.util.Properties;
-
-public class Enemy {
-  private double enemyX;
-  private double enemyY = 0;
-  private double arrivalTime;
-  private double movementSpeed;
+public abstract class Enemy extends GameObject {
+  protected double arrivalTime;
+  protected double movementSpeed;
+  protected double enemyOffset;
   private boolean isAlive;
 
-  public Enemy(double enemyX, double arrivalTime, double movementSpeed) {
-    this.enemyX = enemyX;
-    // enemy always spawn at the top
+  public Enemy(double x, double y, Image image, double arrivalTime, double movementSpeed) {
+    super(x, y, image);
     this.arrivalTime = arrivalTime;
     this.movementSpeed = movementSpeed;
     this.isAlive = true;
+    this.enemyOffset = image.getWidth() / 2;
+
   }
 
-  public double getEnemyX() {
-    return enemyX;
-  }
-
-  public double getEnemyY() {
-    return enemyY;
-  }
-  public double getArrivalTime() {
-    return arrivalTime;
-  }
-
-  public double getMovementSpeed() {
-    return movementSpeed;
-  }
-
-  public void move() {
-    enemyY += movementSpeed;
-  }
+  public abstract void move();
+  public abstract void update();
 
   public boolean isAlive() {
     return isAlive;
@@ -43,6 +26,13 @@ public class Enemy {
   public void setAlive(boolean alive) {
     this.isAlive = alive;
   }
+
+  public void draw() {
+    image.draw(x, y);
+  }
+
+  public double getArrivalTime() {
+    return arrivalTime;
+  }
+
 }
-
-
