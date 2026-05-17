@@ -12,6 +12,16 @@ public abstract class GameObject {
     this.image = image;
   }
 
-  public abstract void move();
-  public abstract void update();
+  public void move(){
+  }
+  public void update(){
+  }
+
+  public double getX() {
+    return x;
+  }
+
+  public double getY() {
+    return y;
+  }
 }

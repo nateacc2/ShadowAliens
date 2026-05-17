@@ -6,11 +6,22 @@ import bagel.Image;
 import bagel.util.Colour;
 import java.awt.*;
 import java.util.Properties;
+import java.util.ArrayList;
 
 /**
  * Main game class that manages initialization of game window and objects
  */
 public class ShadowAliens extends AbstractGame {
+
+  private ArrayList<Projectile> projectiles = new ArrayList<>();
+  private ArrayList<Enemy> enemies = new ArrayList<>();
+  private Player player;
+
+  private double projX;
+  private double projY;
+  private int projCooldown;
+  private int playerSpeed;
+  private int shotTimer;
 
   // Magic numbers
   private static final int ORIGIN = 0;
@@ -21,7 +32,6 @@ public class ShadowAliens extends AbstractGame {
   private static final int NORMAL_TIME = 1;
   private static final int FIRST_COUNT = 1;
   private static final int HALF_SPEED = -2;
-  private static final int PLAYER_OFFSET = 28;
   private static final int PLAYER_BOUNDARY = 56;
 
   private static Properties gameProps;
@@ -35,10 +45,6 @@ public class ShadowAliens extends AbstractGame {
   private double liveY;
   private double scoreX;
   private double scoreY;
-  private double playerX;
-  private double playerY;
-  private double projX;
-  private double projY;
   private double explosionX;
   private double explosionY;
   private double pausedY;
@@ -48,10 +54,6 @@ public class ShadowAliens extends AbstractGame {
 
   private int livesCount;
   private int lifeGap;
-  private int playerSpeed;
-  private int projCooldown;
-  private int projSpeed;
-  private int shotTimer;
   private int enemyTimer;
   private int explosionTimer;
   private int explosionDur;
@@ -72,13 +74,12 @@ public class ShadowAliens extends AbstractGame {
   private Image playerProjectile;
   private Image playerSpaceship;
   private Image enemySpaceship;
+  private int projSpeed;
 
   public Font generalText;
   public Font pausedText;
   public final Colour bgColour;
   private final double center;
-
-  public Enemy[] enemies;
 
   private double arrivalTime;
   private double movementSpeed;
@@ -137,20 +138,26 @@ public class ShadowAliens extends AbstractGame {
     bgColour = new Colour(r, g, b);
 
     // Load player specs
-    playerSpaceship = new Image(gameProps.getProperty("player.image"));
-    playerX = center;
-    playerY = Integer.parseInt(gameProps.getProperty("player.posY"));
-    playerSpeed =  Integer.parseInt(gameProps.getProperty("player.speed"));
+    Image spaceshipImg = new Image(gameProps.getProperty("player.image"));
+    Image shieldImg = new Image(gameProps.getProperty("invincibility.image"));
+    int playerLives = Integer.parseInt(gameProps.getProperty("player.initialLives"));
+    int playerSpeed = Integer.parseInt(gameProps.getProperty("player.speed"));
+
+    double startX = center;
+    double startY = Integer.parseInt(gameProps.getProperty("player.posY"));
+
+    this.player = new Player(startX, startY, spaceshipImg, shieldImg, playerLives, playerSpeed);
+
     projCooldown = Integer.parseInt(gameProps.getProperty("player.shootCooldown"));
     playerProjectile = new Image(gameProps.getProperty("projectile.image"));
-    projSpeed = Integer.parseInt(gameProps.getProperty("projectile.movementSpeed"));
+    int projSpeed = Integer.parseInt(gameProps.getProperty("projectile.movementSpeed"));
 
     // Load enemy specs
-    enemySpaceship = new Image(gameProps.getProperty("enemy.image"));
+    enemySpaceship = new Image(gameProps.getProperty("enemy.regular.image"));
     rotate = new DrawOptions();
     rotate.setRotation(Math.toRadians(90));
-    explosion = new Image(gameProps.getProperty("explosion.image"));
-    explosionDur = Integer.parseInt(gameProps.getProperty("explosion.duration"));
+    explosion = new Image(gameProps.getProperty("explosion.large.image"));
+    explosionDur = Integer.parseInt(gameProps.getProperty("explosion.large.duration"));
 
     // Load pause menu specs
     title = gameProps.getProperty("pausedTitle.text");
@@ -163,17 +170,30 @@ public class ShadowAliens extends AbstractGame {
     controlList = gameProps.getProperty("controlsList.text").split(",");
     rowGap = Double.parseDouble(gameProps.getProperty("controlsList.rowGap"));
 
-    // while loop to check how many enemy exists
-    eCount = NULL;
-    while (gameProps.getProperty("enemy."+ eCount + ".posX") != null) {
-      eCount++;
-    }
-    this.enemies = new Enemy[eCount];
-    for (int i = 0; i < eCount; i++) {
-      arrivalTime = Integer.parseInt(gameProps.getProperty("enemy." + i + ".arrivalTime"));
-      movementSpeed = Double.parseDouble(gameProps.getProperty("enemy." + i + ".movementSpeed"));
-      enemyX = Integer.parseInt(gameProps.getProperty("enemy."+ i + ".posX"));
-      enemies[i] = new Enemy(enemyX, arrivalTime, movementSpeed);
+    Image regEnemyImg = new Image(gameProps.getProperty("enemy.regular.image"));
+    Image strafeEnemyImg = new Image(gameProps.getProperty("enemy.strafing.image"));
+    Image shootEnemyImg = new Image(gameProps.getProperty("enemy.shooting.image"));
+
+    int index = 0;
+    while (gameProps.getProperty("wave." + waveLevel + ".enemy." + index + ".posX") != null) {
+
+      // Parse the data for the current wave and enemy index
+      int arrivalTime = Integer.parseInt(gameProps.getProperty("wave." + waveLevel + ".enemy." + index + ".arrivalTime"));
+      double movementSpeed = Double.parseDouble(gameProps.getProperty("wave." + waveLevel + ".enemy." + index + ".movementSpeed"));
+      double enemyX = Integer.parseInt(gameProps.getProperty("wave." + waveLevel + ".enemy." + index + ".posX"));
+      String enemyType = gameProps.getProperty("wave." + waveLevel + ".enemy." + index + ".type");
+
+      if (enemyType.equals("regular")) {
+        enemies.add(new RegularEnemy(enemyX,0, regEnemyImg, arrivalTime, movementSpeed));
+      } else if (enemyType.equals("strafing")) {
+        enemies.add(new StrafingEnemy(enemyX, 0, strafeEnemyImg, arrivalTime, movementSpeed, screenWidth));
+      } else if (enemyType.equals("shooting")) {
+        enemies.add(new ShootingEnemy(enemyX, 0, shootEnemyImg, arrivalTime, movementSpeed,
+                0, 0, 1,shootEnemyImg));
+      }
+
+      // Move to the next enemy in this specific wave
+      index++;
     }
   }
 
@@ -230,14 +250,7 @@ public class ShadowAliens extends AbstractGame {
       }
     }
 
-    // Rendering game objects
-    playerSpaceship.draw(playerX, playerY);
-
-    for (Enemy e : enemies) {
-      if (enemyTimer >= e.getArrivalTime() && e.isAlive()) {
-        enemySpaceship.draw(e.getEnemyX(), e.getEnemyY(), rotate);
-      }
-    }
+    player.update(input);
 
     if (projExist) {
       playerProjectile.draw(projX, projY);
@@ -350,33 +363,13 @@ public class ShadowAliens extends AbstractGame {
   private void updateGameLogic(Input input){
 
     if (!isPaused) {
-      // implementing player movements
-      if (input.isDown(Keys.A)) {
-        // check if spaceship is at left screen boundary
-        if (playerX == PLAYER_OFFSET){
-          // if at boundary, stay there
-          playerX = PLAYER_OFFSET;
-        } else {
-          playerX -= playerSpeed;
-        }
-      }
 
-      if (input.isDown(Keys.D)) {
-        if (playerX == screenWidth - PLAYER_OFFSET) {
-          playerX = screenWidth - PLAYER_OFFSET;
-        } else {
-          playerX += playerSpeed;
-        }
-      }
-
-      if (input.wasPressed(Keys.SPACE)) {
-        // check if gun is on cooldown
-        if (shotTimer == OFF_COOLDOWN) {
-          projX = playerX;
-          projY = playerY;
-          shotTimer = projCooldown;
-          projExist = true;
-        }
+      if (input.wasPressed(Keys.SPACE) && shotTimer == OFF_COOLDOWN) {
+        projX = player.getX();
+        projY = player.getY();
+        projExist = true;
+        shotTimer = projCooldown;
+        projectiles.add(new PlayerProjectile(projX, projY, playerProjectile, projSpeed));
       }
 
       // implementing projectile travel
@@ -395,8 +388,8 @@ public class ShadowAliens extends AbstractGame {
 
           // check if projectile is fired
           if (projExist) {
-            double distX = Math.abs(projX - e.getEnemyX());
-            double distY = Math.abs(projY - e.getEnemyY());
+            double distX = Math.abs(projX - e.getX());
+            double distY = Math.abs(projY - e.getY());
 
             // If projectile comes in contact with enemy ship
             if (distX < PROJ_THRESHOLD && distY < PROJ_THRESHOLD) {
@@ -405,15 +398,15 @@ public class ShadowAliens extends AbstractGame {
               e.setAlive(false);
               explosionTimer = OFF_COOLDOWN;
               explosionExist = true;
-              explosionX = e.getEnemyX();
-              explosionY = e.getEnemyY();
+              explosionX = e.getX();
+              explosionY = e.getY();
               scoreCount++;
             }
           }
 
           if (e.isAlive()) {
-             double distX = Math.abs(playerX - e.getEnemyX());
-             double distY = Math.abs(playerY - e.getEnemyY());
+             double distX = Math.abs(player.getX() - e.getX());
+             double distY = Math.abs(player.getY() - e.getY());
 
             // check if enemy comes in contact with player ship
             if (distX < PLAYER_BOUNDARY && distY < PLAYER_BOUNDARY) {
@@ -427,7 +420,7 @@ public class ShadowAliens extends AbstractGame {
           }
 
           // stop drawing enemy if they go off game screen
-          if (e.getEnemyY() > screenHeight) {
+          if (e.getY() > screenHeight) {
             e.setAlive(false);
           }
         }
@@ -456,19 +449,19 @@ public class ShadowAliens extends AbstractGame {
     frameCounter = NULL;
     invincible = false;
 
-    playerX = center;
     projExist = false;
     explosionExist = false;
+
     playerSpeed =  Integer.parseInt(gameProps.getProperty("player.speed"));
     projCooldown = Integer.parseInt(gameProps.getProperty("player.shootCooldown"));
 
-    // Set enemy array to its default state
-    for (int i = 0; i < eCount; i++) {
-      arrivalTime = Integer.parseInt(gameProps.getProperty("enemy." + i + ".arrivalTime"));
-      movementSpeed = Double.parseDouble(gameProps.getProperty("enemy." + i + ".movementSpeed"));
-      enemyX = Integer.parseInt(gameProps.getProperty("enemy."+ i + ".posX"));
-      this.enemies[i] = new Enemy(enemyX, arrivalTime, movementSpeed);
-    }
+    Image spaceshipImg = new Image(gameProps.getProperty("player.image"));
+    Image shieldImg = new Image(gameProps.getProperty("player.invincibleImage"));
+    double startY = Integer.parseInt(gameProps.getProperty("player.posY"));
+
+
+    this.player = new Player(center, startY, spaceshipImg, shieldImg, livesCount, playerSpeed);
   }
+
 }
 

@@ -25,4 +25,8 @@ public abstract class Projectile extends GameObject {
   public void setProjExist(boolean projExist) {
     this.projExist = projExist;
   }
+
+  public int getSpeed() {
+    return speed;
+  }
 }

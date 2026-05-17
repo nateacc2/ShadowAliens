@@ -34,4 +34,5 @@ public class ShootingEnemy extends RegularEnemy {
     // not ready to shoot
     return null;
   }
+
 }
