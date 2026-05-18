@@ -15,7 +15,15 @@ public abstract class Projectile extends GameObject {
   @Override
   public void update() {
     move();
-    image.draw(x, y);
+
+    // check if off screen
+    if (y < 0) {
+      projExist = false;
+    }
+
+    if (projExist) {
+      image.draw(x, y);
+    }
   }
   
   public boolean isProjExist() {

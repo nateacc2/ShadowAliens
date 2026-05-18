@@ -74,7 +74,6 @@ public class ShadowAliens extends AbstractGame {
 
   private final double center;
 
-
   /**
    * Shadow Aliens Class used to initalises game variables and load game data
    * */
@@ -152,31 +151,6 @@ public class ShadowAliens extends AbstractGame {
     controlList = gameProps.getProperty("controlsList.text").split(",");
     rowGap = Double.parseDouble(gameProps.getProperty("controlsList.rowGap"));
 
-    Image regEnemyImg = new Image(gameProps.getProperty("enemy.regular.image"));
-    Image strafeEnemyImg = new Image(gameProps.getProperty("enemy.strafing.image"));
-    Image shootEnemyImg = new Image(gameProps.getProperty("enemy.shooting.image"));
-
-    int index = 0;
-    while (gameProps.getProperty("wave." + waveLevel + ".enemy." + index + ".posX") != null) {
-
-      // Parse the data for the current wave and enemy index
-      int arrivalTime = Integer.parseInt(gameProps.getProperty("wave." + waveLevel + ".enemy." + index + ".arrivalTime"));
-      double movementSpeed = Double.parseDouble(gameProps.getProperty("wave." + waveLevel + ".enemy." + index + ".movementSpeed"));
-      double enemyX = Integer.parseInt(gameProps.getProperty("wave." + waveLevel + ".enemy." + index + ".posX"));
-      String enemyType = gameProps.getProperty("wave." + waveLevel + ".enemy." + index + ".type");
-
-      if (enemyType.equals("regular")) {
-        enemies.add(new RegularEnemy(enemyX,0, regEnemyImg, arrivalTime, movementSpeed));
-      } else if (enemyType.equals("strafing")) {
-        enemies.add(new StrafingEnemy(enemyX, 0, strafeEnemyImg, arrivalTime, movementSpeed, screenWidth));
-      } else if (enemyType.equals("shooting")) {
-        enemies.add(new ShootingEnemy(enemyX, 0, shootEnemyImg, arrivalTime, movementSpeed,
-                0, 0, 1,shootEnemyImg));
-      }
-
-      // Move to the next enemy in this specific wave
-      index++;
-    }
   }
 
   /**
@@ -224,10 +198,6 @@ public class ShadowAliens extends AbstractGame {
     }
 
     player.update(input);
-
-    if (projExist) {
-      playerProjectile.draw(projX, projY);
-    }
 
     generalText.drawString(gameProps.getProperty("wave.text") + " " + waveLevel, waveX, waveY);
     generalText.drawString(gameProps.getProperty("score.text") + " " + scoreCount, scoreX, scoreY);
@@ -335,92 +305,46 @@ public class ShadowAliens extends AbstractGame {
    * */
   private void updateGameLogic(Input input){
 
-    if (!isPaused) {
-
+      // Player shooting
       if (input.wasPressed(Keys.SPACE)) {
-        // instantiate player projectile object
         PlayerProjectile p = player.shoot();
-        // check if projectile was created successfully
         if (p != null) {
           projectiles.add(p);
         }
       }
 
-      for (int i = projectiles.size()- 1; i >= 0 ; i--) {
+      // Update player
+      player.update(input);
+
+      // Update projectiles
+      for (int i = projectiles.size() - 1; i >= 0; i--) {
         Projectile p = projectiles.get(i);
         p.update();
-        // check if projectile is destroyed
         if (!p.isProjExist()) {
-          // remove from current projectiles arrayList
           projectiles.remove(i);
         }
       }
 
-      // implementing projectile travel
-      if (projExist) {
-        projY -= projSpeed;
-        // check if projectile is off the screen
-        if (projY < ORIGIN) {
-          projExist = false;
+      // Update wave (handles enemy movement and drawing)
+      currWave.update();
+
+      // Collision detection
+      checkCollisions();
+
+      // Update explosions
+      for (int i = explosions.size() - 1; i >= 0; i--) {
+        Explosion e = explosions.get(i);
+        e.update();
+        if (!e.isActive()) {
+          explosions.remove(i);
         }
       }
 
-      for (Enemy e : enemies) {
-        // Check whether enemy is ready to spawn
-        if (enemyTimer >= e.getArrivalTime() && e.isAlive()) {
-          e.move();
-
-          // check if projectile is fired
-          if (projExist) {
-            double distX = Math.abs(projX - e.getX());
-            double distY = Math.abs(projY - e.getY());
-
-            // If projectile comes in contact with enemy ship
-            if (distX < PROJ_THRESHOLD && distY < PROJ_THRESHOLD) {
-              // enemy collision logic initiates
-              projExist = false;
-              e.setAlive(false);
-              explosionTimer = OFF_COOLDOWN;
-              explosionExist = true;
-              explosionX = e.getX();
-              explosionY = e.getY();
-              scoreCount++;
-            }
-          }
-
-          if (e.isAlive()) {
-             double distX = Math.abs(player.getX() - e.getX());
-             double distY = Math.abs(player.getY() - e.getY());
-
-            // check if enemy comes in contact with player ship
-            if (distX < PLAYER_BOUNDARY && distY < PLAYER_BOUNDARY) {
-              if (invincible) {
-                e.setAlive(false);
-              } else {
-                livesCount--;
-                e.setAlive(false);
-              }
-            }
-          }
-
-          // stop drawing enemy if they go off game screen
-          if (e.getY() > screenHeight) {
-            e.setAlive(false);
-          }
-        }
-      }
-
-      // track player's projectile cooldown
-      // if shotTimer == 0 cooldown is ready
-      if (shotTimer > OFF_COOLDOWN){
-        shotTimer--;
-      }
-
-      if (livesCount == NULL) {
+      // Check game over
+      if (player.getLivesCount() <= 0) {
         System.exit(0);
       }
-      enemyTimer++;
-    }
+
   }
 
   /** Method to re-initialise game to its initial state */
@@ -447,5 +371,35 @@ public class ShadowAliens extends AbstractGame {
     this.player = new Player(center, startY, spaceshipImg, shieldImg, livesCount, playerSpeed);
   }
 
+  private void loadWave(int waveLevel) {
+    // reset enemies array for each wave
+    enemies.clear();
+
+    Image regEnemyImg = new Image(gameProps.getProperty("enemy.regular.image"));
+    Image strafeEnemyImg = new Image(gameProps.getProperty("enemy.strafing.image"));
+    Image shootEnemyImg = new Image(gameProps.getProperty("enemy.shooting.image"));
+
+    int index = 0;
+    while (gameProps.getProperty("wave." + waveLevel + ".enemy." + index + ".posX") != null) {
+
+      // Parse the data for the current wave and enemy index
+      int arrivalTime = Integer.parseInt(gameProps.getProperty("wave." + waveLevel + ".enemy." + index + ".arrivalTime"));
+      double movementSpeed = Double.parseDouble(gameProps.getProperty("wave." + waveLevel + ".enemy." + index + ".movementSpeed"));
+      double enemyX = Integer.parseInt(gameProps.getProperty("wave." + waveLevel + ".enemy." + index + ".posX"));
+      String enemyType = gameProps.getProperty("wave." + waveLevel + ".enemy." + index + ".type");
+
+      if (enemyType.equals("regular")) {
+        enemies.add(new RegularEnemy(enemyX,0, regEnemyImg, arrivalTime, movementSpeed));
+      } else if (enemyType.equals("strafing")) {
+        enemies.add(new StrafingEnemy(enemyX, 0, strafeEnemyImg, arrivalTime, movementSpeed, screenWidth));
+      } else if (enemyType.equals("shooting")) {
+        enemies.add(new ShootingEnemy(enemyX, 0, shootEnemyImg, arrivalTime, movementSpeed,
+                0, 0, 1,shootEnemyImg));
+      }
+      // Move to the next enemy in this specific wave
+      index++;
+    }
+  }
+  currWave = new Wave(enemies, null, waveLevel);
 }
 
