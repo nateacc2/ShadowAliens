@@ -13,15 +13,46 @@ import java.util.ArrayList;
  */
 public class ShadowAliens extends AbstractGame {
 
-  private ArrayList<Projectile> projectiles = new ArrayList<>();
-  private ArrayList<Enemy> enemies = new ArrayList<>();
   private Player player;
+  private Wave currWave;
+  private ArrayList<Projectile> projectiles = new ArrayList<>();
+  private ArrayList<Explosion> explosions = new ArrayList<>();
+  private ArrayList<Enemy> enemies = new ArrayList<>();
 
-  private double projX;
-  private double projY;
-  private int projCooldown;
-  private int playerSpeed;
-  private int shotTimer;
+  private int scoreCount;
+  private int waveLevel;
+  private boolean isPaused = false;
+  private boolean invincible;
+  private double timeScale;
+  private int frameCounter;
+
+  // UI Related
+  public Font generalText;
+  private int fontSize;
+  public Font pausedText;
+  public final Colour bgColour;
+  private Image playerLife;
+
+  // UI positions
+  private double waveX;
+  private double waveY;
+  private double liveX;
+  private double liveY;
+  private int lifeGap;
+  private double scoreX;
+  private double scoreY;
+
+  // pause menu
+  private double pausedY;
+  private double controlY;
+  private double rowGap;
+  private final String title;
+  private final String timeScaleText;
+  private final String[] controlList;
+  private double timeX;
+  private double timeY;
+  private int pausedFontSize;
+
 
   // Magic numbers
   private static final int ORIGIN = 0;
@@ -39,58 +70,10 @@ public class ShadowAliens extends AbstractGame {
   public static double screenWidth;
   public static double screenHeight;
 
-  private double waveX;
-  private double waveY;
-  private double liveX;
-  private double liveY;
-  private double scoreX;
-  private double scoreY;
-  private double explosionX;
-  private double explosionY;
-  private double pausedY;
-  private double controlY;
-  private double rowGap;
-  private double timeScale;
-
   private int livesCount;
-  private int lifeGap;
-  private int enemyTimer;
-  private int explosionTimer;
-  private int explosionDur;
-  private int scoreCount;
-  private int eCount;
-  private int pausedFontSize;
-  private int fontSize;
-  private int frameCounter;
-  private int waveLevel;
 
-  private boolean isPaused = false;
-  private boolean projExist;
-  private boolean explosionExist;
-  private boolean invincible;
-
-  private Image explosion;
-  private Image playerLife;
-  private Image playerProjectile;
-  private Image playerSpaceship;
-  private Image enemySpaceship;
-  private int projSpeed;
-
-  public Font generalText;
-  public Font pausedText;
-  public final Colour bgColour;
   private final double center;
 
-  private double arrivalTime;
-  private double movementSpeed;
-  private double enemyX;
-  private double timeX;
-  private double timeY;
-
-  private DrawOptions rotate;
-  private final String title;
-  private final String timeScaleText;
-  private final String[] controlList;
 
   /**
    * Shadow Aliens Class used to initalises game variables and load game data
@@ -143,19 +126,18 @@ public class ShadowAliens extends AbstractGame {
     int playerLives = Integer.parseInt(gameProps.getProperty("player.initialLives"));
     int playerSpeed = Integer.parseInt(gameProps.getProperty("player.speed"));
 
+    int projCooldown = Integer.parseInt(gameProps.getProperty("player.shootCooldown"));
+    int projSpeed = Integer.parseInt(gameProps.getProperty("projectile.movementSpeed"));
+    Image projImage = new Image(gameProps.getProperty("projectile.image"));
+
     double startX = center;
     double startY = Integer.parseInt(gameProps.getProperty("player.posY"));
 
-    this.player = new Player(startX, startY, spaceshipImg, shieldImg, playerLives, playerSpeed);
-
-    projCooldown = Integer.parseInt(gameProps.getProperty("player.shootCooldown"));
-    playerProjectile = new Image(gameProps.getProperty("projectile.image"));
-    int projSpeed = Integer.parseInt(gameProps.getProperty("projectile.movementSpeed"));
+    this.player = new Player(startX, startY, spaceshipImg, shieldImg, playerLives, playerSpeed,
+            projCooldown, projSpeed, projImage);
 
     // Load enemy specs
     enemySpaceship = new Image(gameProps.getProperty("enemy.regular.image"));
-    rotate = new DrawOptions();
-    rotate.setRotation(Math.toRadians(90));
     explosion = new Image(gameProps.getProperty("explosion.large.image"));
     explosionDur = Integer.parseInt(gameProps.getProperty("explosion.large.duration"));
 
@@ -355,12 +337,23 @@ public class ShadowAliens extends AbstractGame {
 
     if (!isPaused) {
 
-      if (input.wasPressed(Keys.SPACE) && shotTimer == OFF_COOLDOWN) {
-        projX = player.getX();
-        projY = player.getY();
-        projExist = true;
-        shotTimer = projCooldown;
-        projectiles.add(new PlayerProjectile(projX, projY, playerProjectile, projSpeed));
+      if (input.wasPressed(Keys.SPACE)) {
+        // instantiate player projectile object
+        PlayerProjectile p = player.shoot();
+        // check if projectile was created successfully
+        if (p != null) {
+          projectiles.add(p);
+        }
+      }
+
+      for (int i = projectiles.size()- 1; i >= 0 ; i--) {
+        Projectile p = projectiles.get(i);
+        p.update();
+        // check if projectile is destroyed
+        if (!p.isProjExist()) {
+          // remove from current projectiles arrayList
+          projectiles.remove(i);
+        }
       }
 
       // implementing projectile travel
