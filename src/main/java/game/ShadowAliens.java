@@ -241,15 +241,6 @@ public class ShadowAliens extends AbstractGame {
       frameCounter++;
     }
 
-    if (explosionExist) {
-      explosionTimer++;
-      if (explosionTimer <= explosionDur) {
-        explosion.draw(explosionX, explosionY);
-      } else {
-        explosionExist = false;
-      }
-    }
-
     player.update(input);
 
     if (projExist) {
