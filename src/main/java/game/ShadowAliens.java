@@ -33,6 +33,10 @@ public class ShadowAliens extends AbstractGame {
   public final Colour bgColour;
   private Image playerLife;
 
+  private Image largeExplosionImg;
+  private int largeExplosionDur;
+  private Image enemySpaceship;
+
   // UI positions
   private double waveX;
   private double waveY;
@@ -135,10 +139,10 @@ public class ShadowAliens extends AbstractGame {
     this.player = new Player(startX, startY, spaceshipImg, shieldImg, playerLives, playerSpeed,
             projCooldown, projSpeed, projImage);
 
-    // Load enemy specs
+
     enemySpaceship = new Image(gameProps.getProperty("enemy.regular.image"));
-    explosion = new Image(gameProps.getProperty("explosion.large.image"));
-    explosionDur = Integer.parseInt(gameProps.getProperty("explosion.large.duration"));
+    largeExplosionImg = new Image(gameProps.getProperty("explosion.large.image"));
+    largeExplosionDur = Integer.parseInt(gameProps.getProperty("explosion.large.duration"));
 
     // Load pause menu specs
     title = gameProps.getProperty("pausedTitle.text");
@@ -151,6 +155,7 @@ public class ShadowAliens extends AbstractGame {
     controlList = gameProps.getProperty("controlsList.text").split(",");
     rowGap = Double.parseDouble(gameProps.getProperty("controlsList.rowGap"));
 
+    loadWave(waveLevel);
   }
 
   /**
@@ -349,26 +354,25 @@ public class ShadowAliens extends AbstractGame {
 
   /** Method to re-initialise game to its initial state */
   private void restartGame() {
-    livesCount = Integer.parseInt(gameProps.getProperty("player.initialLives"));
     scoreCount = NULL;
-
-    enemyTimer = NULL;
     timeScale = NORMAL_TIME;
     frameCounter = NULL;
     invincible = false;
-
-    projExist = false;
-    explosionExist = false;
-
-    playerSpeed =  Integer.parseInt(gameProps.getProperty("player.speed"));
-    projCooldown = Integer.parseInt(gameProps.getProperty("player.shootCooldown"));
+    projectiles.clear();
+    explosions.clear();
 
     Image spaceshipImg = new Image(gameProps.getProperty("player.image"));
-    Image shieldImg = new Image(gameProps.getProperty("player.invincibleImage"));
+    Image shieldImg = new Image(gameProps.getProperty("invincibility.image"));
+    int playerLives = Integer.parseInt(gameProps.getProperty("player.initialLives"));
+    int playerSpeed = Integer.parseInt(gameProps.getProperty("player.speed"));
+    int projCooldown = Integer.parseInt(gameProps.getProperty("player.shootCooldown"));
+    int projSpeed = Integer.parseInt(gameProps.getProperty("projectile.movementSpeed"));
+    Image projImage = new Image(gameProps.getProperty("projectile.image"));
     double startY = Integer.parseInt(gameProps.getProperty("player.posY"));
 
-
-    this.player = new Player(center, startY, spaceshipImg, shieldImg, livesCount, playerSpeed);
+    this.player = new Player(center, startY, spaceshipImg, shieldImg,
+            playerLives, playerSpeed, projCooldown, projSpeed, projImage);
+    loadWave(waveLevel);
   }
 
   private void loadWave(int waveLevel) {
@@ -399,7 +403,51 @@ public class ShadowAliens extends AbstractGame {
       // Move to the next enemy in this specific wave
       index++;
     }
+    currWave = new Wave(enemies, waveLevel);
   }
-  currWave = new Wave(enemies, null, waveLevel);
+
+  private void checkCollisions() {
+
+    for (Enemy e : currWave.getEnemies()) {
+      if (!e.isAlive()) continue;
+
+      // Player projectile hits enemy
+      for (int i = projectiles.size() - 1; i >= 0; i--) {
+        Projectile p = projectiles.get(i);
+        double distX = Math.abs(p.getX() - e.getX());
+        double distY = Math.abs(p.getY() - e.getY());
+
+        if (distX < PROJ_THRESHOLD && distY < PROJ_THRESHOLD) {
+          projectiles.remove(i);
+          e.setAlive(false);
+          explosions.add(new Explosion(e.getX(), e.getY(),
+                  largeExplosionImg, largeExplosionDur, true));
+          scoreCount++;
+          break;
+        }
+      }
+
+      // Enemy hits player
+      if (e.isAlive()) {
+        double distX = Math.abs(player.getX() - e.getX());
+        double distY = Math.abs(player.getY() - e.getY());
+
+        if (distX < PLAYER_BOUNDARY && distY < PLAYER_BOUNDARY) {
+          e.setAlive(false);
+          explosions.add(new Explosion(e.getX(), e.getY(),
+                  largeExplosionImg, largeExplosionDur, true));
+          if (!invincible && !player.isInvincible()) {
+            player.loseLife();
+            livesCount--;
+          }
+        }
+      }
+
+      // Enemy goes off screen
+      if (e.getY() > screenHeight) {
+        e.setAlive(false);
+      }
+    }
+  }
 }
 
