@@ -11,6 +11,7 @@ public class StrafingEnemy extends Enemy {
     super(x, y, image, arrivalTime, movementSpeed);
     // evaluates to true if enemy spawn on the left side
     movingLeft = x < screenWidth / 2;
+    this.screenWidth = screenWidth;
   }
 
   @Override
@@ -19,8 +20,10 @@ public class StrafingEnemy extends Enemy {
 
     if (movingLeft) {
       x -= movementSpeed;
+      // check if enemy hits edge of screen
       if (x <= enemyOffset) {
         x = enemyOffset;
+        // start moving right
         movingLeft = false;
       }
     } else {

@@ -273,6 +273,12 @@ public class ShadowAliens extends AbstractGame {
     if (input.wasPressed(Keys.R)) {
       restartGame();
     }
+
+    if (input.wasPressed(Keys.N)) {
+      waveLevel++;
+      loadWave(waveLevel);
+      projectiles.clear();
+    }
   }
 
   /** Entry point for the game */
@@ -345,6 +351,16 @@ public class ShadowAliens extends AbstractGame {
         System.exit(0);
       }
 
+      if (currWave.isCompleted()) {
+        waveLevel++;
+        // check if another wave exists
+        if (gameProps.getProperty("wave." + waveLevel + ".enemy.0.posX") != null) {
+          loadWave(waveLevel);
+        } else {
+          System.exit(0);
+        }
+    }
+
   }
 
   /** Method to re-initialise game to its initial state */
@@ -355,6 +371,7 @@ public class ShadowAliens extends AbstractGame {
     invincible = false;
     projectiles.clear();
     explosions.clear();
+    waveLevel = 0;
 
     Image spaceshipImg = new Image(gameProps.getProperty("player.image"));
     Image shieldImg = new Image(gameProps.getProperty("invincibility.image"));
