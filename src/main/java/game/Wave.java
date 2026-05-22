@@ -29,8 +29,8 @@ public class Wave {
     // check whether enemy is ready to spawn
     for (Enemy e: enemies) {
       if (e.getArrivalTime() <= frameCount && e.isAlive()) {
-        e.draw();
         e.update();
+        e.draw();
       }
     }
     frameCount++;

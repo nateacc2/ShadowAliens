@@ -35,7 +35,6 @@ public class ShadowAliens extends AbstractGame {
 
   private Image largeExplosionImg;
   private int largeExplosionDur;
-  private Image enemySpaceship;
 
   // UI positions
   private double waveX;
@@ -140,7 +139,6 @@ public class ShadowAliens extends AbstractGame {
             projCooldown, projSpeed, projImage);
 
 
-    enemySpaceship = new Image(gameProps.getProperty("enemy.regular.image"));
     largeExplosionImg = new Image(gameProps.getProperty("explosion.large.image"));
     largeExplosionDur = Integer.parseInt(gameProps.getProperty("explosion.large.duration"));
 
@@ -207,7 +205,7 @@ public class ShadowAliens extends AbstractGame {
     generalText.drawString(gameProps.getProperty("wave.text") + " " + waveLevel, waveX, waveY);
     generalText.drawString(gameProps.getProperty("score.text") + " " + scoreCount, scoreX, scoreY);
 
-    for (int i = 0; i < livesCount ; i++) {
+    for (int i = 0; i < player.getLivesCount() ; i++) {
       playerLife.draw(liveX + (lifeGap*i),liveY);
     }
 
@@ -317,9 +315,6 @@ public class ShadowAliens extends AbstractGame {
           projectiles.add(p);
         }
       }
-
-      // Update player
-      player.update(input);
 
       // Update projectiles
       for (int i = projectiles.size() - 1; i >= 0; i--) {
@@ -438,7 +433,6 @@ public class ShadowAliens extends AbstractGame {
                   largeExplosionImg, largeExplosionDur, true));
           if (!invincible && !player.isInvincible()) {
             player.loseLife();
-            livesCount--;
           }
         }
       }

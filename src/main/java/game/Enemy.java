@@ -1,4 +1,5 @@
 package game;
+import bagel.DrawOptions;
 import bagel.Image;
 
 public abstract class Enemy extends GameObject {
@@ -28,8 +29,11 @@ public abstract class Enemy extends GameObject {
   }
 
   public void draw() {
-    image.draw(x, y);
+    DrawOptions rotate = new DrawOptions();
+    rotate.setRotation(Math.toRadians(90));
+    image.draw(x, y, rotate);
   }
+
 
   public double getArrivalTime() {
     return arrivalTime;
