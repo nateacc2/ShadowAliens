@@ -65,8 +65,13 @@ public class Player extends GameObject {
     if (shotTimer > 0) {
       shotTimer--;
     }
+  }
 
-    image.draw(x,y);
+  public void draw() {
+    image.draw(x, y);
+    if (invincible) {
+      invincibleImage.draw(x, y);
+    }
   }
 
   public PlayerProjectile shoot() {

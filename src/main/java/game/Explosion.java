@@ -21,10 +21,17 @@ public class Explosion extends GameObject {
 
     if (isActive) {
       timer++;
+      if (timer >= duration) {
+        isActive = false;
+      }
+    }
+  }
+
+  public void draw() {
+    if (isActive) {
+      image.draw(x, y);
       if (timer <= duration) {
         image.draw(x, y);
-      } else {
-        isActive = false;
       }
     }
   }

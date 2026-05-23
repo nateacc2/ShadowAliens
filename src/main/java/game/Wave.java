@@ -30,10 +30,17 @@ public class Wave {
     for (Enemy e: enemies) {
       if (e.getArrivalTime() <= frameCount && e.isAlive()) {
         e.update();
-        e.draw();
       }
     }
     frameCount++;
+  }
+
+  public void draw() {
+    for (Enemy e: enemies) {
+      if (e.getArrivalTime() <= frameCount && e.isAlive()) {
+        e.draw();
+      }
+    }
   }
 
   public ArrayList<Enemy> getEnemies() {

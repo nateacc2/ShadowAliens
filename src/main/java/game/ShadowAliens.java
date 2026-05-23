@@ -211,6 +211,15 @@ public class ShadowAliens extends AbstractGame {
       frameCounter++;
     }
 
+    player.draw();
+    currWave.draw();
+    for (Projectile p: projectiles) {
+      p.draw();
+    }
+    for (Explosion e: explosions) {
+      e.draw();
+    }
+
     generalText.drawString(gameProps.getProperty("wave.text") + " " + waveLevel, waveX, waveY);
     generalText.drawString(gameProps.getProperty("score.text") + " " + scoreCount, scoreX, scoreY);
 
@@ -344,7 +353,7 @@ public class ShadowAliens extends AbstractGame {
       }
     }
 
-    // Update wave (handles enemy movement and drawing)
+    // Update wave (handles enemy movement)
     currWave.update();
 
     // Collision detection

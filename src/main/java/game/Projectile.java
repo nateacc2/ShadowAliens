@@ -20,9 +20,11 @@ public abstract class Projectile extends GameObject {
     if (y < 0) {
       projExist = false;
     }
+  }
 
+  public void draw() {
     if (projExist) {
-      image.draw(x, y);
+      image.draw(x,y);
     }
   }
   
