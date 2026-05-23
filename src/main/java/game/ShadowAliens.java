@@ -56,24 +56,27 @@ public class ShadowAliens extends AbstractGame {
   private double timeY;
   private int pausedFontSize;
 
+  // scores related
+  private int regEnemyScore;
+  private int strafeEnemyScore;
+  private int shootEnemyScore;
+  private int gotHitDeduction;
+  private int powerupScore;
+  private int hitProjScore;
+  private int waveCompScore;
 
   // Magic numbers
   private static final int ORIGIN = 0;
   private static final int NO_REMAINDER = 0;
-  private static final int OFF_COOLDOWN = 0;
   private static final int NULL = 0;
-  private static final double PROJ_THRESHOLD = 43;
   private static final int NORMAL_TIME = 1;
   private static final int FIRST_COUNT = 1;
   private static final int HALF_SPEED = -2;
-  private static final int PLAYER_BOUNDARY = 56;
 
   private static Properties gameProps;
 
   public static double screenWidth;
   public static double screenHeight;
-
-  private int livesCount;
 
   private final double center;
 
@@ -94,7 +97,6 @@ public class ShadowAliens extends AbstractGame {
     // Load images, lives position and live count
     playerLife = new Image(gameProps.getProperty("playerLives.image"));
     lifeGap = Integer.parseInt(gameProps.getProperty("playerLives.gap"));
-    livesCount = Integer.parseInt(gameProps.getProperty("player.initialLives"));
     String[] lifePos = gameProps.getProperty("playerLives.startPosition").split(",");
     this.liveX = Integer.parseInt(lifePos[0]);
     this.liveY = Integer.parseInt(lifePos[1]);
@@ -153,6 +155,15 @@ public class ShadowAliens extends AbstractGame {
     controlList = gameProps.getProperty("controlsList.text").split(",");
     rowGap = Double.parseDouble(gameProps.getProperty("controlsList.rowGap"));
 
+    // Load scores details
+    regEnemyScore = Integer.parseInt(gameProps.getProperty("score.destroyedEnemy.regular"));
+    strafeEnemyScore = Integer.parseInt(gameProps.getProperty("score.destroyedEnemy.strafing"));
+    shootEnemyScore = Integer.parseInt(gameProps.getProperty("score.destroyedEnemy.shooting"));
+    gotHitDeduction = Integer.parseInt(gameProps.getProperty("score.gotHit"));
+    powerupScore = Integer.parseInt(gameProps.getProperty("score.gotPowerup"));
+    hitProjScore =  Integer.parseInt(gameProps.getProperty("score.hitProjectile"));
+    waveCompScore = Integer.parseInt(gameProps.getProperty("score.waveCompleted"));
+
     loadWave(waveLevel);
   }
 
@@ -199,8 +210,6 @@ public class ShadowAliens extends AbstractGame {
       }
       frameCounter++;
     }
-
-    player.update(input);
 
     generalText.drawString(gameProps.getProperty("wave.text") + " " + waveLevel, waveX, waveY);
     generalText.drawString(gameProps.getProperty("score.text") + " " + scoreCount, scoreX, scoreY);
@@ -276,8 +285,10 @@ public class ShadowAliens extends AbstractGame {
 
     if (input.wasPressed(Keys.N)) {
       waveLevel++;
-      loadWave(waveLevel);
       projectiles.clear();
+      scoreCount+= waveCompScore;
+      loadWave(waveLevel);
+
     }
   }
 
@@ -353,6 +364,7 @@ public class ShadowAliens extends AbstractGame {
 
       if (currWave.isCompleted()) {
         waveLevel++;
+        scoreCount += waveCompScore;
         // check if another wave exists
         if (gameProps.getProperty("wave." + waveLevel + ".enemy.0.posX") != null) {
           loadWave(waveLevel);
@@ -371,7 +383,7 @@ public class ShadowAliens extends AbstractGame {
     invincible = false;
     projectiles.clear();
     explosions.clear();
-    waveLevel = 0;
+    waveLevel = FIRST_COUNT;
 
     Image spaceshipImg = new Image(gameProps.getProperty("player.image"));
     Image shieldImg = new Image(gameProps.getProperty("invincibility.image"));
@@ -420,36 +432,45 @@ public class ShadowAliens extends AbstractGame {
 
   private void checkCollisions() {
 
+    for (Projectile p : projectiles) {
+      if (!p.isProjExist()) {
+        continue;
+      }
+
+    }
+
     for (Enemy e : currWave.getEnemies()) {
-      if (!e.isAlive()) continue;
+      if (!e.isAlive()) {
+        continue;
+      }
 
       // Player projectile hits enemy
       for (int i = projectiles.size() - 1; i >= 0; i--) {
-        Projectile p = projectiles.get(i);
-        double distX = Math.abs(p.getX() - e.getX());
-        double distY = Math.abs(p.getY() - e.getY());
-
-        if (distX < PROJ_THRESHOLD && distY < PROJ_THRESHOLD) {
+        if (e.collidesWith(projectiles.get(i))) {
           projectiles.remove(i);
           e.setAlive(false);
           explosions.add(new Explosion(e.getX(), e.getY(),
                   largeExplosionImg, largeExplosionDur, true));
-          scoreCount++;
+          if (e instanceof RegularEnemy) {
+            scoreCount += regEnemyScore;
+          } else if (e instanceof StrafingEnemy) {
+            scoreCount += strafeEnemyScore;
+          } else if (e instanceof ShootingEnemy) {
+            scoreCount += shootEnemyScore;
+          }
           break;
         }
       }
 
       // Enemy hits player
       if (e.isAlive()) {
-        double distX = Math.abs(player.getX() - e.getX());
-        double distY = Math.abs(player.getY() - e.getY());
-
-        if (distX < PLAYER_BOUNDARY && distY < PLAYER_BOUNDARY) {
+        if (e.collidesWith(player)) {
           e.setAlive(false);
           explosions.add(new Explosion(e.getX(), e.getY(),
                   largeExplosionImg, largeExplosionDur, true));
           if (!invincible && !player.isInvincible()) {
             player.loseLife();
+            scoreCount = Math.max(0, scoreCount - gotHitDeduction);
           }
         }
       }
