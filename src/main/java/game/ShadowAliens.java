@@ -325,54 +325,55 @@ public class ShadowAliens extends AbstractGame {
    * */
   private void updateGameLogic(Input input){
 
-      // Player shooting
-      if (input.wasPressed(Keys.SPACE)) {
-        PlayerProjectile p = player.shoot();
-        if (p != null) {
-          projectiles.add(p);
-        }
+    player.update(input);
+
+    // Player shooting
+    if (input.wasPressed(Keys.SPACE)) {
+      PlayerProjectile p = player.shoot();
+      if (p != null) {
+        projectiles.add(p);
       }
-
-      // Update projectiles
-      for (int i = projectiles.size() - 1; i >= 0; i--) {
-        Projectile p = projectiles.get(i);
-        p.update();
-        if (!p.isProjExist()) {
-          projectiles.remove(i);
-        }
-      }
-
-      // Update wave (handles enemy movement and drawing)
-      currWave.update();
-
-      // Collision detection
-      checkCollisions();
-
-      // Update explosions
-      for (int i = explosions.size() - 1; i >= 0; i--) {
-        Explosion e = explosions.get(i);
-        e.update();
-        if (!e.isActive()) {
-          explosions.remove(i);
-        }
-      }
-
-      // Check game over
-      if (player.getLivesCount() <= 0) {
-        System.exit(0);
-      }
-
-      if (currWave.isCompleted()) {
-        waveLevel++;
-        scoreCount += waveCompScore;
-        // check if another wave exists
-        if (gameProps.getProperty("wave." + waveLevel + ".enemy.0.posX") != null) {
-          loadWave(waveLevel);
-        } else {
-          System.exit(0);
-        }
     }
 
+      // Update projectiles
+    for (int i = projectiles.size() - 1; i >= 0; i--) {
+      Projectile p = projectiles.get(i);
+      p.update();
+      if (!p.isProjExist()) {
+        projectiles.remove(i);
+      }
+    }
+
+    // Update wave (handles enemy movement and drawing)
+    currWave.update();
+
+    // Collision detection
+    checkCollisions();
+
+    // Update explosions
+    for (int i = explosions.size() - 1; i >= 0; i--) {
+      Explosion e = explosions.get(i);
+      e.update();
+      if (!e.isActive()) {
+        explosions.remove(i);
+      }
+    }
+
+    // Check game over
+    if (player.getLivesCount() <= 0) {
+      System.exit(0);
+    }
+
+    if (currWave.isCompleted()) {
+      waveLevel++;
+      scoreCount += waveCompScore;
+      // check if another wave exists
+      if (gameProps.getProperty("wave." + waveLevel + ".enemy.0.posX") != null) {
+        loadWave(waveLevel);
+      } else {
+        System.exit(0);
+      }
+    }
   }
 
   /** Method to re-initialise game to its initial state */
