@@ -35,6 +35,9 @@ public class ShadowAliens extends AbstractGame {
 
   private Image largeExplosionImg;
   private int largeExplosionDur;
+  private Image smallExplosionImg;
+  private int smallExplosionDur;
+
 
   // UI positions
   private double waveX;
@@ -143,6 +146,8 @@ public class ShadowAliens extends AbstractGame {
 
     largeExplosionImg = new Image(gameProps.getProperty("explosion.large.image"));
     largeExplosionDur = Integer.parseInt(gameProps.getProperty("explosion.large.duration"));
+    smallExplosionImg = new Image(gameProps.getProperty("explosion.small.image"));
+    smallExplosionDur = Integer.parseInt(gameProps.getProperty("explosion.small.duration"));
 
     // Load pause menu specs
     title = gameProps.getProperty("pausedTitle.text");
@@ -227,6 +232,7 @@ public class ShadowAliens extends AbstractGame {
       playerLife.draw(liveX + (lifeGap*i),liveY);
     }
 
+    // PAUSE MENU FUNCTIONS
     if (isPaused) {
       // Find the X center value for the title given the title width
       double titleX = center - (pausedText.getWidth(title) / 2.0);
@@ -344,6 +350,18 @@ public class ShadowAliens extends AbstractGame {
       }
     }
 
+    // Enemy shooting
+    for (Enemy e: currWave.getEnemies()) {
+      if (e instanceof ShootingEnemy) {
+        // Downcast needed as normal Enemy does not have a shoot function
+        ShootingEnemy shooter = (ShootingEnemy) e;
+        EnemyProjectile proj = shooter.shoot();
+        if (proj != null) {
+          projectiles.add(proj);
+        }
+      }
+    }
+
       // Update projectiles
     for (int i = projectiles.size() - 1; i >= 0; i--) {
       Projectile p = projectiles.get(i);
@@ -416,7 +434,7 @@ public class ShadowAliens extends AbstractGame {
     Image regEnemyImg = new Image(gameProps.getProperty("enemy.regular.image"));
     Image strafeEnemyImg = new Image(gameProps.getProperty("enemy.strafing.image"));
     Image shootEnemyImg = new Image(gameProps.getProperty("enemy.shooting.image"));
-
+    Image enemyProj = new Image(gameProps.getProperty("enemyProjectile.image"));
     int index = 0;
     while (gameProps.getProperty("wave." + waveLevel + ".enemy." + index + ".posX") != null) {
 
@@ -431,8 +449,10 @@ public class ShadowAliens extends AbstractGame {
       } else if (enemyType.equals("strafing")) {
         enemies.add(new StrafingEnemy(enemyX, 0, strafeEnemyImg, arrivalTime, movementSpeed, screenWidth));
       } else if (enemyType.equals("shooting")) {
+        int firingRate = Integer.parseInt(gameProps.getProperty("enemy.shooting.firingRate"));
+        int projSpeed = Integer.parseInt(gameProps.getProperty("enemyProjectile.movementSpeed"));
         enemies.add(new ShootingEnemy(enemyX, 0, shootEnemyImg, arrivalTime, movementSpeed,
-                0, 0, 1,shootEnemyImg));
+                firingRate, 0, projSpeed,enemyProj));
       }
       // Move to the next enemy in this specific wave
       index++;
@@ -442,46 +462,58 @@ public class ShadowAliens extends AbstractGame {
 
   private void checkCollisions() {
 
-    for (Projectile p : projectiles) {
-      if (!p.isProjExist()) {
-        continue;
+  // If Enemy projectiles hits player
+    for (int i = projectiles.size() - 1; i >= 0; i--) {
+      Projectile p = projectiles.get(i);
+      if (p instanceof EnemyProjectile && p.collidesWith(player)) {
+        if (!invincible && !player.isInvincible()) {
+          player.loseLife();
+          scoreCount = Math.max(0, scoreCount - gotHitDeduction);
+        }
+        explosions.add(new Explosion(p.getX(), p.getY(),
+                smallExplosionImg, smallExplosionDur));
+        projectiles.remove(i);
+        break;
       }
-
     }
 
+  // Enemy loop
     for (Enemy e : currWave.getEnemies()) {
       if (!e.isAlive()) {
         continue;
       }
 
-      // Player projectile hits enemy
       for (int i = projectiles.size() - 1; i >= 0; i--) {
-        if (e.collidesWith(projectiles.get(i))) {
+        Projectile p = projectiles.get(i);
+        // player projectile collides with enemy
+        if (p instanceof PlayerProjectile && e.collidesWith(p)) {
           projectiles.remove(i);
           e.setAlive(false);
           explosions.add(new Explosion(e.getX(), e.getY(),
-                  largeExplosionImg, largeExplosionDur, true));
-          if (e instanceof RegularEnemy) {
-            scoreCount += regEnemyScore;
-          } else if (e instanceof StrafingEnemy) {
-            scoreCount += strafeEnemyScore;
-          } else if (e instanceof ShootingEnemy) {
+                  largeExplosionImg, largeExplosionDur));
+
+          // check for the enemy type killed
+          if (e instanceof ShootingEnemy) {
             scoreCount += shootEnemyScore;
+          }
+          else if (e instanceof StrafingEnemy) {
+            scoreCount += strafeEnemyScore;
+          }
+          else if (e instanceof RegularEnemy) {
+            scoreCount += regEnemyScore;
           }
           break;
         }
       }
 
-      // Enemy hits player
-      if (e.isAlive()) {
-        if (e.collidesWith(player)) {
-          e.setAlive(false);
-          explosions.add(new Explosion(e.getX(), e.getY(),
-                  largeExplosionImg, largeExplosionDur, true));
-          if (!invincible && !player.isInvincible()) {
-            player.loseLife();
-            scoreCount = Math.max(0, scoreCount - gotHitDeduction);
-          }
+      // Enemy spaceship hits player spaceship
+      if (e.isAlive() && e.collidesWith(player)) {
+        e.setAlive(false);
+        explosions.add(new Explosion(e.getX(), e.getY(),
+                largeExplosionImg, largeExplosionDur));
+        if (!invincible && !player.isInvincible()) {
+          player.loseLife();
+          scoreCount = Math.max(0, scoreCount - gotHitDeduction);
         }
       }
 
@@ -489,6 +521,7 @@ public class ShadowAliens extends AbstractGame {
       if (e.getY() > screenHeight) {
         e.setAlive(false);
       }
+
     }
   }
 }

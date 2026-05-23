@@ -1,7 +1,7 @@
 package game;
 import bagel.Image;
 
-public class ShootingEnemy extends RegularEnemy {
+public class ShootingEnemy extends Enemy {
   private int shotTimer;
   private int firingRate;
   private Image projectileImage;
@@ -18,11 +18,14 @@ public class ShootingEnemy extends RegularEnemy {
 
   @Override
   public void move() {
-    super.move();
+    y += movementSpeed;
+  }
 
+  public void update() {
     if (shotTimer > 0) {
       shotTimer--;
     }
+    move();
   }
 
   public EnemyProjectile shoot() {
