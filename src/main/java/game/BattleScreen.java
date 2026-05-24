@@ -3,7 +3,6 @@ package game;
 import bagel.*;
 import bagel.Font;
 import bagel.Image;
-import bagel.util.Colour;
 import java.util.Properties;
 import java.util.ArrayList;
 
@@ -169,13 +168,16 @@ public class BattleScreen extends Screen {
       frameCounter++;
     }
 
-    player.draw();
+    player.draw(invincible);
     currWave.draw();
     for (Projectile p: projectiles) {
       p.draw();
     }
     for (Explosion e: explosions) {
       e.draw();
+    }
+    for (Powerup p: fallingPowerups) {
+      p.draw();
     }
 
     generalText.drawString(gameProps.getProperty("wave.text") + " " + waveLevel, waveX, waveY);
@@ -300,7 +302,7 @@ public class BattleScreen extends Screen {
     // Update wave (handles enemy movement)
     currWave.update();
 
-    for (Powerup p: fallingPowerups) {
+    for (Powerup p : fallingPowerups) {
       p.update();
     }
 
@@ -372,7 +374,7 @@ public class BattleScreen extends Screen {
     double startY = Integer.parseInt(gameProps.getProperty("player.posY"));
 
     this.player = new Player(CENTER, startY, spaceshipImg, shieldImg,
-            playerLives, playerSpeed, projCooldown, projSpeed, projImage);
+            playerLives, playerSpeed, projCooldown, projSpeed, projImage, gameProps);
     loadWave(waveLevel);
   }
 
@@ -408,6 +410,29 @@ public class BattleScreen extends Screen {
       index++;
     }
     currWave = new Wave(enemies, waveLevel);
+
+    Image lifePowerupImg = new Image(gameProps.getProperty("powerup.life.image"));
+    Image cdPowerupImg = new Image(gameProps.getProperty("powerup.cooldown.image"));
+    Image engineImg = new Image(gameProps.getProperty("powerup.engine.image"));
+    int powerIndex = 0;
+    while (gameProps.getProperty("wave." + waveLevel + ".powerup." + powerIndex + ".posX") != null) {
+
+      // Parse the data for the current wave and power up index
+      int arrivalTime = Integer.parseInt(gameProps.getProperty("wave." + waveLevel + ".powerup." + powerIndex + ".arrivalTime"));
+      double powerX = Integer.parseInt(gameProps.getProperty("wave." + waveLevel + ".powerup." + powerIndex + ".posX"));
+      String powerType = gameProps.getProperty("wave." + waveLevel + ".powerup." + powerIndex + ".type");
+
+      if (powerType.equals("engine")) {
+        fallingPowerups.add(new Engine(powerX,0, engineImg, arrivalTime, gameProps));
+      } else if (powerType.equals("life")) {
+        fallingPowerups.add(new Life(powerX, 0, lifePowerupImg, arrivalTime, gameProps));
+      } else if (powerType.equals("cooldown")) {
+        fallingPowerups.add(new Cooldown(powerX, 0, cdPowerupImg, arrivalTime, gameProps));
+      } else if (powerType.equals("shield")) {
+        fallingPowerups.add(new Shield(powerX, 0, engineImg, arrivalTime, gameProps));
+      }
+      powerIndex++;
+    }
   }
 
   private void checkCollisions() {
@@ -445,8 +470,8 @@ public class BattleScreen extends Screen {
 
       // If Enemy projectiles hits player
       if (p instanceof EnemyProjectile && p.collidesWith(player)) {
-        if (!invincible && !player.isInvincible()) {
-          player.loseLife();
+        if (!invincible && !player.isInvincible() && !player.isHitInvincible()) {
+          player.triggerHitInvincibility();
           scoreCount = Math.max(0, scoreCount - gotHitDeduction);
         }
         explosions.add(new Explosion(p.getX(), p.getY(),
@@ -490,8 +515,10 @@ public class BattleScreen extends Screen {
         e.setAlive(false);
         explosions.add(new Explosion(e.getX(), e.getY(),
                 largeExplosionImg, largeExplosionDur));
-        if (!invincible && !player.isInvincible()) {
-          player.loseLife();
+
+        // checks if player has any invulnerability status
+        if (!invincible && !player.isInvincible() && !player.isHitInvincible()) {
+          player.triggerHitInvincibility();
           scoreCount = Math.max(0, scoreCount - gotHitDeduction);
         }
       }

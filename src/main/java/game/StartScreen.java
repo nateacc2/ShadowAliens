@@ -42,13 +42,13 @@ public class StartScreen extends Screen {
     Image projImage = new Image(gameProps.getProperty("projectile.image"));
 
     this.player = new Player(startX, playerY, spaceshipImg, shieldImg, playerLives, playerSpeed,
-            projCooldown, projSpeed, projImage);
+            projCooldown, projSpeed, projImage, gameProps);
   }
 
   public void update(Input input) {
 
     player.update(input);
-    player.draw();
+    player.draw(player.isInvincible() || player.isHitInvincible());
 
     double titleX = CENTER - (titleText.getWidth(startText) / 2.0 );
     titleText.drawString(startText, titleX, startY);

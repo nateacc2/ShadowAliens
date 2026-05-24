@@ -10,10 +10,11 @@ public class Cooldown extends Powerup {
   private int durActive;
   private int originalCooldown;
 
-  public Cooldown(int x, int y, Image image, int arrivalTime, int movementSpeed,
+  public Cooldown(double x, double y, Image image, int arrivalTime,
                   Properties gameProps) {
-    super(x, y, image, arrivalTime, movementSpeed);
+    super(x, y, image, arrivalTime);
 
+    movementSpeed = Integer.parseInt(gameProps.getProperty("powerup.cooldown.movementSpeed"));
     duration = Integer.parseInt(gameProps.getProperty("powerup.cooldown.duration"));
     isCollected = false;
     durActive = 0;

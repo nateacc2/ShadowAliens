@@ -46,7 +46,7 @@ public class EndScreen extends Screen {
   public void update(Input input) {
 
     player.update(input);
-    player.draw();
+    player.draw(player.isInvincible() || player.isHitInvincible());
 
     if (hasWon) {
       double winX = CENTER - (winText.getWidth(winString) / 2.0 );

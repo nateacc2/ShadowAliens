@@ -3,6 +3,7 @@ package game;
 import bagel.Image;
 import bagel.Input;
 import bagel.Keys;
+import java.util.Properties;
 
 public class Player extends GameObject {
 
@@ -18,9 +19,14 @@ public class Player extends GameObject {
   private Image projImage;
   private PlayerProjectile currentProjectile;
 
+  // New fields for hit-recovery state
+  private boolean isHitInvincible = false;
+  private int hitInvincibleTimer = 0;
+  private final int maxHitInvincibleFrames;
+
   public Player(double x, double y, Image spaceship, Image shield,
                 int livesCount, int movementSpeed,
-                int projCooldown, int projSpeed, Image projImage) {
+                int projCooldown, int projSpeed, Image projImage, Properties gameProps) {
     super(x, y, spaceship);
     this.invincibleImage = shield;
     this.livesCount = livesCount;
@@ -30,6 +36,7 @@ public class Player extends GameObject {
     this.projSpeed = projSpeed;
     this.projImage = projImage;
     this.PLAYER_OFFSET = image.getWidth() / 2;
+    this.maxHitInvincibleFrames = Integer.parseInt(gameProps.getProperty("player.hitInvincibilityTime"));
   }
 
   public double getX() {
@@ -65,13 +72,29 @@ public class Player extends GameObject {
     if (shotTimer > 0) {
       shotTimer--;
     }
+
+    // track hit invincibility duration frame countdown
+    if (isHitInvincible) {
+      hitInvincibleTimer++;
+      if (hitInvincibleTimer >= maxHitInvincibleFrames) {
+        isHitInvincible = false;
+      }
+    }
   }
 
-  public void draw() {
+  public void draw(boolean devInvincible) {
     image.draw(x, y);
-    if (invincible) {
+
+    // Displays shield matrix texture if dev-mode, hit-recovery, or power-up invincibility is active
+    if (devInvincible || isHitInvincible || invincible) {
       invincibleImage.draw(x, y);
     }
+  }
+
+  public void triggerHitInvincibility() {
+    isHitInvincible = true;
+    hitInvincibleTimer = 0;
+    loseLife();
   }
 
   public PlayerProjectile shoot() {
@@ -92,24 +115,24 @@ public class Player extends GameObject {
     this.projCooldown = projCooldown;
   }
 
-  public void addLife() {
-    if (livesCount < initialLives) {
-      livesCount++;
-    }
+  public int getMovementSpeed() {
+    return movementSpeed;
   }
 
-  public void setInvincible(boolean invincible) {
-    this.invincible = invincible;
-  }
-
-
-
-  public void increaseSpeed() {
-    movementSpeed *= 2;
+  public void setMovementSpeed(int movementSpeed) {
+    this.movementSpeed = movementSpeed;
   }
 
   public int getLivesCount() {
     return livesCount;
+  }
+
+  public void setLivesCount(int livesCount) {
+    this.livesCount = livesCount;
+  }
+
+  public void setInvincible(boolean invincible) {
+    this.invincible = invincible;
   }
 
   public void loseLife() {
@@ -118,5 +141,9 @@ public class Player extends GameObject {
 
   public boolean isInvincible() {
     return invincible;
+  }
+
+  public boolean isHitInvincible() {
+    return isHitInvincible;
   }
 }
