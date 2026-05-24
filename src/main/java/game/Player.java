@@ -84,6 +84,14 @@ public class Player extends GameObject {
     return null;
   }
 
+  public int getProjCooldown() {
+    return projCooldown;
+  }
+
+  public void setProjCooldown(int projCooldown) {
+    this.projCooldown = projCooldown;
+  }
+
   public void addLife() {
     if (livesCount < initialLives) {
       livesCount++;
@@ -94,9 +102,7 @@ public class Player extends GameObject {
     this.invincible = invincible;
   }
 
-  public void reduceCooldown() {
-    projCooldown = Math.max(1, projCooldown / 3);
-  }
+
 
   public void increaseSpeed() {
     movementSpeed *= 2;

@@ -1,6 +1,7 @@
 package game;
 
 import bagel.Image;
+import static game.ShadowAliens.screenHeight;
 
 public abstract class Projectile extends GameObject {
   protected int speed;
@@ -17,7 +18,7 @@ public abstract class Projectile extends GameObject {
     move();
 
     // check if off screen
-    if (y < 0) {
+    if (y < 0 || y > screenHeight) {
       projExist = false;
     }
   }

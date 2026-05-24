@@ -18,7 +18,8 @@ I acknowledge the use of Claude [claude.ai] to help me work through project 2b s
 * I utilised Claude to help me summarise the requirements for project 2b into concise dot points
 * I utilised Claude to help fix compile and runtime errors in my program such as ArrayIndexOutBounds exception that would cause my application to crash
 * Claude was used to help me further understand OOP concepts such as polymorphism, inheritance, etc in the context of my game design
-* Claude was used to explain how to use bounding box for collision detection between game objects
+* Claude was used to explain how to use bounding box for collision detection between game objects\
+* Claude was used to help me understand how to implement different screen types such as battle screen, end screen and gave me a guide on how to separate the logic to each class.
 
 A full record of prompts and outputs is available upon request.
 _____________

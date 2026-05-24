@@ -61,12 +61,15 @@ public class BattleScreen extends Screen {
   private int waveCompScore;
 
   // Magic numbers
-  private static final int ORIGIN = 0;
   private static final int NO_REMAINDER = 0;
   private static final int NULL = 0;
   private static final int NORMAL_TIME = 1;
   private static final int FIRST_COUNT = 1;
   private static final int HALF_SPEED = -2;
+
+  // Power up related
+  private ArrayList<Powerup> fallingPowerups = new ArrayList<>();
+  private Powerup activePowerup;
 
   /**
    * BattleScreen Constructor initialized from ShadowAliens data properties
@@ -297,8 +300,23 @@ public class BattleScreen extends Screen {
     // Update wave (handles enemy movement)
     currWave.update();
 
+    for (Powerup p: fallingPowerups) {
+      p.update();
+    }
+
     // Collision detection
     checkCollisions();
+
+    
+    if (activePowerup != null) {
+      activePowerup.update();
+
+      // if active power up timer runs out, deactivate
+      if (!activePowerup.isActive()) {
+        activePowerup.deactivate(player);
+        activePowerup = null;
+      }
+    }
 
     // Update explosions
     for (int i = explosions.size() - 1; i >= 0; i--) {
@@ -337,6 +355,7 @@ public class BattleScreen extends Screen {
     invincible = false;
     projectiles.clear();
     explosions.clear();
+    activePowerup = null;
     waveLevel = FIRST_COUNT;
 
     Image spaceshipImg = new Image(gameProps.getProperty("player.image"));
@@ -387,6 +406,7 @@ public class BattleScreen extends Screen {
   }
 
   private void checkCollisions() {
+
     for (int i = projectiles.size() - 1; i >= 0; i--) {
       // ensures array index is not out of bounds after being modified
       if (i >= projectiles.size()) {
@@ -476,5 +496,26 @@ public class BattleScreen extends Screen {
         e.setAlive(false);
       }
     }
+
+    // Checks collision between powerups and player
+    for (int i = 0; i < fallingPowerups.size(); i++) {
+      Powerup p = fallingPowerups.get(i);
+
+      if (p.collidesWith(player)) {
+        // shut down buff if player obtains new powerup
+        if (activePowerup != null) {
+          activePowerup.deactivate(player);
+        }
+
+        p.collect();
+        activePowerup = p;
+        activePowerup.activate(player);
+
+        scoreCount += powerupScore;
+        fallingPowerups.remove(i);
+        i--;
+      }
+    }
+
   }
 }
