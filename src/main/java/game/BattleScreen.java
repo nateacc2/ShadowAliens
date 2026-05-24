@@ -307,7 +307,6 @@ public class BattleScreen extends Screen {
     // Collision detection
     checkCollisions();
 
-    
     if (activePowerup != null) {
       activePowerup.update();
 
@@ -355,8 +354,13 @@ public class BattleScreen extends Screen {
     invincible = false;
     projectiles.clear();
     explosions.clear();
-    activePowerup = null;
+    fallingPowerups.clear();
     waveLevel = FIRST_COUNT;
+
+    if (activePowerup != null) {
+      activePowerup.deactivate(player);
+    }
+    activePowerup = null;
 
     Image spaceshipImg = new Image(gameProps.getProperty("player.image"));
     Image shieldImg = new Image(gameProps.getProperty("invincibility.image"));
@@ -373,8 +377,9 @@ public class BattleScreen extends Screen {
   }
 
   private void loadWave(int waveLevel) {
-    // reset enemies array for each wave
+    // reset enemies and powerups array for each wave
     enemies.clear();
+    fallingPowerups.clear();
 
     Image regEnemyImg = new Image(gameProps.getProperty("enemy.regular.image"));
     Image strafeEnemyImg = new Image(gameProps.getProperty("enemy.strafing.image"));
