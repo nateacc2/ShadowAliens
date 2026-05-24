@@ -181,6 +181,7 @@ public class ShadowAliens extends AbstractGame {
 
     Drawing.drawRectangle(ORIGIN,ORIGIN,screenWidth, screenHeight, bgColour);
 
+    Screen pauseScreen = new StartScreen(gameProps, screenWidth, screenHeight);
     // navigation between pause and game screen
     if (input.wasPressed(Keys.ESCAPE)) {
       // check if game is already paused
