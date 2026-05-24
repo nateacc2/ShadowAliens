@@ -48,6 +48,7 @@ public class StartScreen extends Screen {
   public void update(Input input) {
 
     player.update(input);
+    player.draw();
 
     double titleX = CENTER - (titleText.getWidth(startText) / 2.0 );
     titleText.drawString(startText, titleX, startY);
