@@ -13,6 +13,13 @@ import java.util.ArrayList;
  */
 public class ShadowAliens extends AbstractGame {
 
+  private static ShadowAliens gameInstance;
+  private Screen currScreen;
+  private static Properties gameProps;
+
+  public static double screenWidth;
+  public static double screenHeight;
+
   private Player player;
   private Wave currWave;
   private ArrayList<Projectile> projectiles = new ArrayList<>();
@@ -76,12 +83,6 @@ public class ShadowAliens extends AbstractGame {
   private static final int FIRST_COUNT = 1;
   private static final int HALF_SPEED = -2;
 
-  private static Properties gameProps;
-
-  public static double screenWidth;
-  public static double screenHeight;
-
-  private final double center;
 
   /**
    * Shadow Aliens Class used to initalises game variables and load game data
@@ -92,10 +93,12 @@ public class ShadowAliens extends AbstractGame {
             "Shadow Aliens");
 
     ShadowAliens.gameProps = gameProps;
-
     screenWidth = Integer.parseInt(gameProps.getProperty("window.width"));
     screenHeight = Integer.parseInt(gameProps.getProperty("window.height"));
-    center = screenWidth / 2;
+
+    gameInstance = this;
+
+    this.currScreen = new StartScreen(gameProps, screenWidth, screenHeight);
 
     // Load images, lives position and live count
     playerLife = new Image(gameProps.getProperty("playerLives.image"));
@@ -126,23 +129,6 @@ public class ShadowAliens extends AbstractGame {
     double g = Double.parseDouble(colorParts[1]);
     double b = Double.parseDouble(colorParts[2]);
     bgColour = new Colour(r, g, b);
-
-    // Load player specs
-    Image spaceshipImg = new Image(gameProps.getProperty("player.image"));
-    Image shieldImg = new Image(gameProps.getProperty("invincibility.image"));
-    int playerLives = Integer.parseInt(gameProps.getProperty("player.initialLives"));
-    int playerSpeed = Integer.parseInt(gameProps.getProperty("player.speed"));
-
-    int projCooldown = Integer.parseInt(gameProps.getProperty("player.shootCooldown"));
-    int projSpeed = Integer.parseInt(gameProps.getProperty("projectile.movementSpeed"));
-    Image projImage = new Image(gameProps.getProperty("projectile.image"));
-
-    double startX = center;
-    double startY = Integer.parseInt(gameProps.getProperty("player.posY"));
-
-    this.player = new Player(startX, startY, spaceshipImg, shieldImg, playerLives, playerSpeed,
-            projCooldown, projSpeed, projImage);
-
 
     largeExplosionImg = new Image(gameProps.getProperty("explosion.large.image"));
     largeExplosionDur = Integer.parseInt(gameProps.getProperty("explosion.large.duration"));
@@ -554,5 +540,8 @@ public class ShadowAliens extends AbstractGame {
 
     }
   }
-}
 
+  public static void changeScreen(Screen newScreen) {
+    gameInstance.currScreen = newScreen;
+  }
+}

@@ -19,8 +19,9 @@ public abstract class Screen {
                 double screenHeight) {
     this.screenHeight = screenHeight;
     this.screenWidth = screenWidth;
-    CENTER = screenWidth / 2;
     this.gameProps = gameProps;
+    CENTER = screenWidth / 2;
+
     fontSize = Integer.parseInt(gameProps.getProperty("text.size"));
     this.generalText = new Font(gameProps.getProperty("text.font"), fontSize);
 

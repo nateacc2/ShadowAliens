@@ -1,6 +1,8 @@
 package game;
 
 import java.util.Properties;
+
+import bagel.Image;
 import bagel.Input;
 import bagel.Keys;
 import bagel.Font;
@@ -26,11 +28,29 @@ public class StartScreen extends Screen {
     rowGap = Double.parseDouble(gameProps.getProperty("start.instructionsList.rowGap"));
 
     titleText = new Font(gameProps.getProperty("text.font"), titleSize);
+
+    double startX = CENTER;
+    double playerY = Integer.parseInt(gameProps.getProperty("player.posY"));
+
+    Image spaceshipImg = new Image(gameProps.getProperty("player.image"));
+    Image shieldImg = new Image(gameProps.getProperty("invincibility.image"));
+    int playerLives = Integer.parseInt(gameProps.getProperty("player.initialLives"));
+    int playerSpeed = Integer.parseInt(gameProps.getProperty("player.speed"));
+
+    int projCooldown = Integer.parseInt(gameProps.getProperty("player.shootCooldown"));
+    int projSpeed = Integer.parseInt(gameProps.getProperty("projectile.movementSpeed"));
+    Image projImage = new Image(gameProps.getProperty("projectile.image"));
+
+    this.player = new Player(startX, playerY, spaceshipImg, shieldImg, playerLives, playerSpeed,
+            projCooldown, projSpeed, projImage);
   }
 
   public void update(Input input) {
+
     player.update(input);
-    titleText.drawString(startText, CENTER, startY);
+
+    double titleX = CENTER - (titleText.getWidth(startText) / 2.0 );
+    titleText.drawString(startText, titleX, startY);
 
     for (int i = 0; i < instructionList.length; i++) {
       String currText = instructionList[i];
