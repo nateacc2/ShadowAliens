@@ -60,8 +60,9 @@ public class StartScreen extends Screen {
     }
 
     if (input.wasPressed(Keys.SPACE)) {
-      //Player newPlayer = new Player();
-      //Screen battleScreen = new BattleScreen();
+      Screen gameplayScreen = new BattleScreen(this.gameProps, this.screenWidth,
+              this.screenHeight, this.player);
+      ShadowAliens.changeScreen(gameplayScreen);
     }
 
 
