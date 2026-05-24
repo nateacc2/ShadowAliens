@@ -462,9 +462,38 @@ public class ShadowAliens extends AbstractGame {
 
   private void checkCollisions() {
 
-  // If Enemy projectiles hits player
     for (int i = projectiles.size() - 1; i >= 0; i--) {
+      // ensures array index is not out of bounds after being modified
+      if (i >= projectiles.size()) {
+        continue;
+      }
       Projectile p = projectiles.get(i);
+
+      // Enemy projectile vs Player projectile collision logic
+      if (p instanceof EnemyProjectile) {
+        for (int j = projectiles.size() - 1; j >= 0; j--) {
+
+          if (j >= projectiles.size()) {
+            continue;
+          }
+          // don't compare projectile to itself
+          if (j == i) {
+            continue;
+          }
+
+          Projectile other = projectiles.get(j);
+          if (other instanceof PlayerProjectile && p.collidesWith(other)) {
+            explosions.add(new Explosion(p.getX(), p.getY(),
+                    smallExplosionImg, smallExplosionDur));
+            projectiles.remove(p);
+            projectiles.remove(other);
+            scoreCount += hitProjScore;
+            break;
+          }
+        }
+      }
+
+      // If Enemy projectiles hits player
       if (p instanceof EnemyProjectile && p.collidesWith(player)) {
         if (!invincible && !player.isInvincible()) {
           player.loseLife();
