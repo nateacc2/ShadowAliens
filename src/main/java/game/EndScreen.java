@@ -20,23 +20,25 @@ public class EndScreen extends Screen {
   private Font winText;
   private Font loseText;
 
-  public EndScreen(Properties gameProps, double screenWidth, double screenHeight) {
+  public EndScreen(Properties gameProps, double screenWidth, double screenHeight,
+                   boolean hasWon, Player player) {
     super(gameProps, screenWidth, screenHeight);
+
+    this.hasWon = hasWon;
+    this.player = player;
 
     instructionList = gameProps.getProperty("end.instructionsList.text").split(",");
     instructionListY = Double.parseDouble(gameProps.getProperty("end.instructionsList.startPosY"));
     rowGap = Double.parseDouble(gameProps.getProperty("end.instructionsList.rowGap"));
 
     winString = gameProps.getProperty("end.win.text");
-    winText = new Font(gameProps.getProperty("text.font"), winSize);
-
     winSize = Integer.parseInt(gameProps.getProperty("end.win.size"));
+    winText = new Font(gameProps.getProperty("text.font"), winSize);
     winPosY = Double.parseDouble(gameProps.getProperty("end.win.posY"));
 
     loseString = gameProps.getProperty("end.lose.text");
-    loseText = new Font(gameProps.getProperty("text.font"), loseSize);
-
     loseSize = Integer.parseInt(gameProps.getProperty("end.lose.size"));
+    loseText = new Font(gameProps.getProperty("text.font"), loseSize);
     losePosY = Double.parseDouble(gameProps.getProperty("end.lose.posY"));
   }
 
@@ -50,8 +52,8 @@ public class EndScreen extends Screen {
       double winX = CENTER - (winText.getWidth(winString) / 2.0 );
       winText.drawString(winString, winX, winPosY);
     } else {
-      double loseX = CENTER - (loseText.getWidth(winString) / 2.0);
-      loseText.drawString(winString, loseX, losePosY);
+      double loseX = CENTER - (loseText.getWidth(loseString) / 2.0);
+      loseText.drawString(loseString, loseX, losePosY);
     }
 
     for (int i = 0; i < instructionList.length; i++) {
@@ -63,7 +65,7 @@ public class EndScreen extends Screen {
 
     if (input.wasPressed(Keys.SPACE)) {
       Screen gameplayScreen = new BattleScreen(this.gameProps, this.screenWidth,
-              this.screenHeight, this.player);
+              this.screenHeight);
       ShadowAliens.changeScreen(gameplayScreen);
     }
 

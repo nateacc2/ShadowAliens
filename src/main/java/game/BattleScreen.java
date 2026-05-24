@@ -71,8 +71,10 @@ public class BattleScreen extends Screen {
   /**
    * BattleScreen Constructor initialized from ShadowAliens data properties
    */
-  public BattleScreen(Properties gameProps, double screenWidth, double screenHeight, Player player) {
+  public BattleScreen(Properties gameProps, double screenWidth, double screenHeight) {
     super(gameProps, screenWidth, screenHeight);
+
+    restartGame();
 
     // Assign the player instance created on the start screen
     this.player = player;
@@ -309,7 +311,8 @@ public class BattleScreen extends Screen {
 
     // Check game over
     if (player.getLivesCount() <= 0) {
-      System.exit(0);
+      Screen endState = new EndScreen(gameProps, screenWidth, screenHeight, false, player);
+      ShadowAliens.changeScreen(endState);
     }
 
     if (currWave.isCompleted()) {
@@ -319,13 +322,15 @@ public class BattleScreen extends Screen {
       if (gameProps.getProperty("wave." + waveLevel + ".enemy.0.posX") != null) {
         loadWave(waveLevel);
       } else {
-        System.exit(0);
+        Screen endState = new EndScreen(gameProps, screenWidth, screenHeight,
+                true, player);
+        ShadowAliens.changeScreen(endState);
       }
     }
   }
 
   /** Method to re-initialise game to its initial state */
-  private void restartGame() {
+  protected void restartGame() {
     scoreCount = NULL;
     timeScale = NORMAL_TIME;
     frameCounter = NULL;
