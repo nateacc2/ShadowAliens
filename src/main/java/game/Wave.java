@@ -30,7 +30,12 @@ public class Wave {
 
   // check if enemy are still alive
   public boolean isCompleted() {
-   return enemies.isEmpty();
+    for (Enemy e : enemies) {
+      if (e.isAlive()) {
+        return false; // Found an enemy that is still alive, wave is not done
+      }
+    }
+    return true; // All enemies are dead!
   }
 
   /**

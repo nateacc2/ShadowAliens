@@ -282,7 +282,14 @@ public class BattleScreen extends Screen {
       waveLevel++;
       projectiles.clear();
       scoreCount+= waveCompScore;
-      loadWave(waveLevel);
+      if (gameProps.getProperty("wave." + waveLevel + ".enemy.0.posX") != null) {
+        loadWave(waveLevel);
+        return;
+      } else {
+        Screen endState = new EndScreen(gameProps, screenWidth, screenHeight, true, player);
+        ShadowAliens.changeScreen(endState);
+        return;
+      }
     }
   }
 
@@ -358,13 +365,17 @@ public class BattleScreen extends Screen {
     if (player.getLivesCount() <= 0) {
       Screen endState = new EndScreen(gameProps, screenWidth, screenHeight, false, player);
       ShadowAliens.changeScreen(endState);
+      return;
     }
 
     if (currWave.isCompleted()) {
       waveLevel++;
       scoreCount += waveCompScore;
+
+      String nextWaveCheck = gameProps.getProperty("wave." + waveLevel + ".enemy.0.posX");
       // check if another wave exists
-      if (gameProps.getProperty("wave." + waveLevel + ".enemy.0.posX") != null) {
+      if (nextWaveCheck != null) {
+        projectiles.clear();
         loadWave(waveLevel);
       } else {
         Screen endState = new EndScreen(gameProps, screenWidth, screenHeight,
@@ -597,6 +608,5 @@ public class BattleScreen extends Screen {
         i--;
       }
     }
-
   }
 }
