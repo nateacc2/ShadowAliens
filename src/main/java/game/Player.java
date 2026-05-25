@@ -5,6 +5,13 @@ import bagel.Input;
 import bagel.Keys;
 import java.util.Properties;
 
+/**
+ * Represents the player's ship character.
+ * Manages keyboard movement, boundary checks, weapon cooldown intervals,
+ * health status tracking, and temporary invincibility statuses.
+ *
+ * @author Nathan S.
+ */
 public class Player extends GameObject {
 
   private boolean invincible = false;
@@ -19,11 +26,27 @@ public class Player extends GameObject {
   private Image projImage;
   private PlayerProjectile currentProjectile;
 
-  // New fields for hit-recovery state
+  // Fields for hit-recovery state
   private boolean isHitInvincible = false;
   private int hitInvincibleTimer = 0;
   private final int maxHitInvincibleFrames;
 
+  /**
+   * Constructs the player's spaceship instance. Initializes its movement properties,
+   * initial weapon speeds, reload timing, and sets up the shield recovery duration
+   * used when the player takes damage.
+   *
+   * @param x             The starting horizontal coordinate on the screen.
+   * @param y             The starting vertical coordinate on the screen.
+   * @param spaceship     The visual representation for the player's spaceship.
+   * @param shield        The visual representation displayed during invincibility.
+   * @param livesCount    The starting number of lives a player has.
+   * @param movementSpeed The speed of how fast a player moves across the screen.
+   * @param projCooldown  The frame delay required between player shots.
+   * @param projSpeed     The upward speed of player projectiles.
+   * @param projImage     The representation of player's projectiles.
+   * @param gameProps    The properties file used to load player's specs.
+   */
   public Player(double x, double y, Image spaceship, Image shield,
                 int livesCount, int movementSpeed,
                 int projCooldown, int projSpeed, Image projImage, Properties gameProps) {
@@ -47,6 +70,13 @@ public class Player extends GameObject {
     return y;
   }
 
+  /**
+   * Processes player action inputs, It updates coordinates based on directional keys,
+   * limits positions to keep the ship completely inside the
+   * game screen, and tracks active cooldowns and damage-recovery timers.
+   *
+   * @param input The current keyboard/mouse input.
+   */
   public void update(Input input) {
 
     // implementing player movements
@@ -82,6 +112,12 @@ public class Player extends GameObject {
     }
   }
 
+  /**
+   * Renders the player's spaceship image. It conditionally renders a
+   * shield on top if developer mode, a power-up effect, or a post-hit recovery is activated
+   *
+   * @param devInvincible Flag confirming if developer mode invincibility is active.
+   */
   public void draw(boolean devInvincible) {
     image.draw(x, y);
 
@@ -91,12 +127,22 @@ public class Player extends GameObject {
     }
   }
 
+  /**
+   * Activates a temporary safety period and deducts a health point.
+   * This prevents multiple overlapping entities from killing a player too quickly
+   */
   public void triggerHitInvincibility() {
     isHitInvincible = true;
     hitInvincibleTimer = 0;
     loseLife();
   }
 
+  /**
+   * Generates a new projectile at the player's current location if the firing
+   * cooldown timer has reached zero, resetting the reload delay back to its cooldown value.
+   *
+   * @return A valid PlayerProjectile instance if allowed to fire; null if still on cooldown
+   */
   public PlayerProjectile shoot() {
 
     // check if shoot cooldown is done

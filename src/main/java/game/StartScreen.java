@@ -7,6 +7,13 @@ import bagel.Input;
 import bagel.Keys;
 import bagel.Font;
 
+/**
+ * Represents the initial screen of the game.
+ * It displays instructions, draws a background, and allows players to practice
+ * moving their ship left and right before starting the actual match.
+ *
+ * @author Nathan S.
+ */
 public class StartScreen extends Screen {
 
   private String startText;
@@ -17,6 +24,13 @@ public class StartScreen extends Screen {
   private double instructionY;
   private double rowGap;
 
+  /**
+   * Loads text and menu spacing rules from the settings file.
+   *
+   * @param gameProps    The layout settings containing text strings and player specs
+   * @param screenWidth  The width of the game window.
+   * @param screenHeight The height of the game window.
+   */
   public StartScreen(Properties gameProps, double screenWidth, double screenHeight) {
     super(gameProps, screenWidth, screenHeight);
 
@@ -45,6 +59,12 @@ public class StartScreen extends Screen {
             projCooldown, projSpeed, projImage, gameProps);
   }
 
+  /**
+   * Renders the background, title screen text and controls
+   * Watches for when users inputs space to indicate that the game is starting
+   *
+   * @param input The current keyboard/mouse input.
+   */
   public void update(Input input) {
 
     drawBG();
