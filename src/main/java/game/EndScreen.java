@@ -45,6 +45,7 @@ public class EndScreen extends Screen {
   @Override
   public void update(Input input) {
 
+    drawBG();
     player.update(input);
     player.draw(player.isInvincible() || player.isHitInvincible());
 

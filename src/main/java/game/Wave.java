@@ -16,12 +16,7 @@ public class Wave {
 
   // check if enemy are still alive
   public boolean isCompleted() {
-    for (Enemy e: enemies) {
-      if (e.isAlive()) {
-        return false;
-      }
-    }
-    return true;
+   return enemies.isEmpty();
   }
 
   public void update() {
@@ -32,6 +27,17 @@ public class Wave {
         e.update();
       }
     }
+
+
+    for (int i = enemies.size() - 1; i >= 0; i--) {
+      Enemy e = enemies.get(i);
+      // Check if enemies is out of screen
+      if (e.isOutOfScreen(ShadowAliens.screenHeight)) {
+        // safely remove enemy if they are no longer on screen
+        enemies.remove(i);
+      }
+    }
+
     frameCount++;
   }
 

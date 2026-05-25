@@ -1,5 +1,6 @@
 package game;
 
+import bagel.Drawing;
 import bagel.Font;
 import java.util.Properties;
 import bagel.Input;
@@ -34,4 +35,8 @@ public abstract class Screen {
   }
 
   public abstract void update(Input input);
+
+  public void drawBG() {
+    Drawing.drawRectangle(0,0, screenWidth,screenHeight, bgColour);
+  }
 }

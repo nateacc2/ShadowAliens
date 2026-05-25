@@ -47,6 +47,7 @@ public class StartScreen extends Screen {
 
   public void update(Input input) {
 
+    drawBG();
     player.update(input);
     player.draw(player.isInvincible() || player.isHitInvincible());
 

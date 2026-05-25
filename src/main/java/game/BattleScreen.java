@@ -133,6 +133,9 @@ public class BattleScreen extends Screen {
 
   @Override
   public void update(Input input) {
+
+    drawBG();
+
     // navigation between pause and game screen
     if (input.wasPressed(Keys.ESCAPE)) {
       // check if game is already paused
@@ -168,15 +171,16 @@ public class BattleScreen extends Screen {
       frameCounter++;
     }
 
-    player.draw(invincible);
-    currWave.draw();
-    for (Projectile p: projectiles) {
-      p.draw();
-    }
     for (Explosion e: explosions) {
       e.draw();
     }
     for (Powerup p: fallingPowerups) {
+      p.draw();
+    }
+    player.draw(invincible);
+    currWave.draw();
+
+    for (Projectile p: projectiles) {
       p.draw();
     }
 
@@ -251,6 +255,8 @@ public class BattleScreen extends Screen {
 
     if (input.wasPressed(Keys.R)) {
       restartGame();
+      Screen startScreen = new StartScreen(gameProps, screenWidth, screenHeight);
+      ShadowAliens.changeScreen(startScreen);
     }
 
     if (input.wasPressed(Keys.N)) {
@@ -414,6 +420,7 @@ public class BattleScreen extends Screen {
     Image lifePowerupImg = new Image(gameProps.getProperty("powerup.life.image"));
     Image cdPowerupImg = new Image(gameProps.getProperty("powerup.cooldown.image"));
     Image engineImg = new Image(gameProps.getProperty("powerup.engine.image"));
+    Image shieldImg = new Image(gameProps.getProperty("powerup.shield.image"));
     int powerIndex = 0;
     while (gameProps.getProperty("wave." + waveLevel + ".powerup." + powerIndex + ".posX") != null) {
 
@@ -429,7 +436,7 @@ public class BattleScreen extends Screen {
       } else if (powerType.equals("cooldown")) {
         fallingPowerups.add(new Cooldown(powerX, 0, cdPowerupImg, arrivalTime, gameProps));
       } else if (powerType.equals("shield")) {
-        fallingPowerups.add(new Shield(powerX, 0, engineImg, arrivalTime, gameProps));
+        fallingPowerups.add(new Shield(powerX, 0, shieldImg, arrivalTime, gameProps));
       }
       powerIndex++;
     }

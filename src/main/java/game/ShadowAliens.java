@@ -1,12 +1,9 @@
 package game;
 
-import bagel.*;
-import bagel.Font;
-import bagel.Image;
-import bagel.util.Colour;
+import bagel.AbstractGame;
+import bagel.Input;
 import java.awt.*;
 import java.util.Properties;
-import java.util.ArrayList;
 
 /**
  * Main game class that manages initialization of game window and objects
@@ -16,10 +13,8 @@ public class ShadowAliens extends AbstractGame {
   private static ShadowAliens gameInstance;
   private Screen currScreen;
   private static Properties gameProps;
-
   public static double screenWidth;
   public static double screenHeight;
-  public final Colour bgColour;
 
   /**
    * Shadow Aliens Class used to initalises game variables and load game data
@@ -36,13 +31,6 @@ public class ShadowAliens extends AbstractGame {
 
     gameInstance = this;
 
-    // Load background colour
-    String[] colorParts = gameProps.getProperty("background.colour").split(",");
-    double r = Double.parseDouble(colorParts[0]);
-    double g = Double.parseDouble(colorParts[1]);
-    double b = Double.parseDouble(colorParts[2]);
-    bgColour = new Colour(r, g, b);
-
     this.currScreen = new StartScreen(gameProps, screenWidth, screenHeight);
   }
 
@@ -52,8 +40,6 @@ public class ShadowAliens extends AbstractGame {
    */
   @Override
   protected void update(Input input) {
-
-    Drawing.drawRectangle(0, 0, screenWidth, screenHeight, bgColour);
 
     if (currScreen != null) {
       currScreen.update(input);

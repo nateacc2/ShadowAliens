@@ -34,7 +34,10 @@ public abstract class Enemy extends GameObject {
     image.draw(x, y, rotate);
   }
 
-
+  public boolean isOutOfScreen(double screenHeight) {
+    return y > screenHeight;
+  }
+  
   public double getArrivalTime() {
     return arrivalTime;
   }

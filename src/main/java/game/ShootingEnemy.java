@@ -7,6 +7,9 @@ public class ShootingEnemy extends Enemy {
   private Image projectileImage;
   private int projSpeed;
 
+  // track how many frames after enemy has spawned
+  private int activeFrames = 0;
+
   public ShootingEnemy(double x, double y, Image image, double arrivalTime, double movementSpeed,
                        int firingRate, int shotTimer, int projSpeed, Image projectileImage) {
     super(x, y, image, arrivalTime, movementSpeed);
@@ -22,13 +25,31 @@ public class ShootingEnemy extends Enemy {
   }
 
   public void update() {
+
+    activeFrames++;
+
+    move();
+
+    // don't increment shotTimer if enemy is not in screen
+    if (activeFrames < arrivalTime) {
+      return;
+    }
+
+
     if (shotTimer > 0) {
       shotTimer--;
     }
-    move();
+
   }
 
   public EnemyProjectile shoot() {
+
+    // enemy not in screen
+    if (activeFrames < arrivalTime) {
+      // exits and tells Battlescreen "no projectile spawned"
+      return null;
+    }
+
     if (shotTimer == 0) {
       // Reset cooldown timer
       shotTimer = firingRate;
@@ -37,5 +58,4 @@ public class ShootingEnemy extends Enemy {
     // not ready to shoot
     return null;
   }
-
 }
