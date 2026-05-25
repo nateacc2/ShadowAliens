@@ -6,6 +6,13 @@ import bagel.Keys;
 
 import java.util.Properties;
 
+/**
+ * Manages the final screen when the game ends.
+ * Displays either a winning message or a losing message to the player,
+ * lists instructions for what to do next, and watches for input to restart.
+ *
+ * @author Nathan S.
+ */
 public class EndScreen extends Screen {
   private boolean hasWon;
   private String instructionList[];
@@ -20,6 +27,16 @@ public class EndScreen extends Screen {
   private Font winText;
   private Font loseText;
 
+  /**
+   * Creates the end screen object and loads all message configurations, font sizes,
+   * positions, and instructions from the properties file.
+   *
+   * @param gameProps    The file properties containing text and display layout metrics.
+   * @param screenWidth  The width of the game window.
+   * @param screenHeight The height of the game window.
+   * @param hasWon       True if the player cleared the game, false if have no more lives.
+   * @param player       The current player instance to finish updating and drawing.
+   */
   public EndScreen(Properties gameProps, double screenWidth, double screenHeight,
                    boolean hasWon, Player player) {
     super(gameProps, screenWidth, screenHeight);
@@ -42,6 +59,13 @@ public class EndScreen extends Screen {
     losePosY = Double.parseDouble(gameProps.getProperty("end.lose.posY"));
   }
 
+  /**
+   * Draws the background, the player ship, the win/lose status message,
+   * and the options menu text. Checks if the space bar is pressed to restart
+   * a fresh game session.
+   *
+   * @param input The current keyboard/mouse input.
+   */
   @Override
   public void update(Input input) {
 
