@@ -6,6 +6,12 @@ import bagel.Image;
 import java.util.Properties;
 import java.util.ArrayList;
 
+/** Manages primary gameplay for Shadow Aliens game
+ * Handles intitialisation of game objects such as wave, projectiles, enemy, explosions, ui elements.
+ * Handles the collision logics between game objects, pause menu overlays, score tracking.
+ *
+ * @author Nathan S
+ */
 public class BattleScreen extends Screen {
 
   private Wave currWave;
@@ -72,6 +78,10 @@ public class BattleScreen extends Screen {
 
   /**
    * BattleScreen Constructor initialized from ShadowAliens data properties
+   *
+   * @param gameProps shared properties file that contains Shadow Aliens game specs.
+   * @param screenWidth the width of the game screen initialized.
+   * @param screenHeight the height of the game screen initializsed
    */
   public BattleScreen(Properties gameProps, double screenWidth, double screenHeight) {
     super(gameProps, screenWidth, screenHeight);
@@ -131,6 +141,13 @@ public class BattleScreen extends Screen {
     loadWave(waveLevel);
   }
 
+  /**
+   * Primary update loop for every frame in active battlefield, used for rendering background,
+   * processing pause menu commands, adjusting game speed variations based on timescale multipliers,
+   * drawing of game and text elements.
+   *
+   * @param input The current mouse/keyboard input.
+   */
   @Override
   public void update(Input input) {
 
@@ -184,8 +201,10 @@ public class BattleScreen extends Screen {
       p.draw();
     }
 
-    generalText.drawString(gameProps.getProperty("wave.text") + " " + waveLevel, waveX, waveY);
-    generalText.drawString(gameProps.getProperty("score.text") + " " + scoreCount, scoreX, scoreY);
+    generalText.drawString(gameProps.getProperty("wave.text") + " " + waveLevel,
+            waveX, waveY);
+    generalText.drawString(gameProps.getProperty("score.text") + " " + scoreCount,
+            scoreX, scoreY);
 
     for (int i = 0; i < player.getLivesCount() ; i++) {
       playerLife.draw(liveX + (lifeGap*i),liveY);
@@ -268,9 +287,11 @@ public class BattleScreen extends Screen {
   }
 
   /**
-   * Method to call for updating game logic such as
-   * updating player speed, checking collision logic and
-   * tracking cooldowns.
+   * Method to call for updating game logic such as creation and deletion of game objects such
+   * as projectiles and calling their update methods. Triggers screen transitions upon victor or
+   * death and handles the activation of powerups collected.
+   *
+   * @param input The current mouse/keyboard input.
    * */
   private void updateGameLogic(Input input){
 
@@ -312,7 +333,6 @@ public class BattleScreen extends Screen {
       p.update();
     }
 
-    // Collision detection
     checkCollisions();
 
     if (activePowerup != null) {
@@ -354,7 +374,9 @@ public class BattleScreen extends Screen {
     }
   }
 
-  /** Method to re-initialise game to its initial state */
+  /**
+   * Method to re-initialise game to its initial state and re-instantiates a clean player instance
+   * */
   protected void restartGame() {
     scoreCount = NULL;
     timeScale = NORMAL_TIME;
@@ -384,6 +406,13 @@ public class BattleScreen extends Screen {
     loadWave(waveLevel);
   }
 
+  /**
+   * Parses enemies and powerup related variables into their corresponding arrayList specific to the
+   * current waveLevel. Separates different types of enemies and power-ups into their own types
+   * depending on the gameProps data.
+   *
+   * @param waveLevel the current wave level of enemy and power-ups to search and build
+   */
   private void loadWave(int waveLevel) {
     // reset enemies and powerups array for each wave
     enemies.clear();
@@ -397,15 +426,19 @@ public class BattleScreen extends Screen {
     while (gameProps.getProperty("wave." + waveLevel + ".enemy." + index + ".posX") != null) {
 
       // Parse the data for the current wave and enemy index
-      int arrivalTime = Integer.parseInt(gameProps.getProperty("wave." + waveLevel + ".enemy." + index + ".arrivalTime"));
-      double movementSpeed = Double.parseDouble(gameProps.getProperty("wave." + waveLevel + ".enemy." + index + ".movementSpeed"));
-      double enemyX = Integer.parseInt(gameProps.getProperty("wave." + waveLevel + ".enemy." + index + ".posX"));
+      int arrivalTime = Integer.parseInt(gameProps.getProperty("wave." + waveLevel + ".enemy." +
+              index + ".arrivalTime"));
+      double movementSpeed = Double.parseDouble(gameProps.getProperty("wave." + waveLevel +
+              ".enemy." + index + ".movementSpeed"));
+      double enemyX = Integer.parseInt(gameProps.getProperty("wave." + waveLevel + ".enemy."
+              + index + ".posX"));
       String enemyType = gameProps.getProperty("wave." + waveLevel + ".enemy." + index + ".type");
 
       if (enemyType.equals("regular")) {
         enemies.add(new RegularEnemy(enemyX,0, regEnemyImg, arrivalTime, movementSpeed));
       } else if (enemyType.equals("strafing")) {
-        enemies.add(new StrafingEnemy(enemyX, 0, strafeEnemyImg, arrivalTime, movementSpeed, screenWidth));
+        enemies.add(new StrafingEnemy(enemyX, 0, strafeEnemyImg,
+                arrivalTime, movementSpeed, screenWidth));
       } else if (enemyType.equals("shooting")) {
         int firingRate = Integer.parseInt(gameProps.getProperty("enemy.shooting.firingRate"));
         int projSpeed = Integer.parseInt(gameProps.getProperty("enemyProjectile.movementSpeed"));
@@ -422,12 +455,15 @@ public class BattleScreen extends Screen {
     Image engineImg = new Image(gameProps.getProperty("powerup.engine.image"));
     Image shieldImg = new Image(gameProps.getProperty("powerup.shield.image"));
     int powerIndex = 0;
-    while (gameProps.getProperty("wave." + waveLevel + ".powerup." + powerIndex + ".posX") != null) {
+    while(gameProps.getProperty("wave." + waveLevel + ".powerup." + powerIndex + ".posX") != null) {
 
       // Parse the data for the current wave and power up index
-      int arrivalTime = Integer.parseInt(gameProps.getProperty("wave." + waveLevel + ".powerup." + powerIndex + ".arrivalTime"));
-      double powerX = Integer.parseInt(gameProps.getProperty("wave." + waveLevel + ".powerup." + powerIndex + ".posX"));
-      String powerType = gameProps.getProperty("wave." + waveLevel + ".powerup." + powerIndex + ".type");
+      int arrivalTime = Integer.parseInt(gameProps.getProperty("wave." + waveLevel +
+              ".powerup." + powerIndex + ".arrivalTime"));
+      double powerX = Integer.parseInt(gameProps.getProperty("wave." + waveLevel +
+              ".powerup." + powerIndex + ".posX"));
+      String powerType = gameProps.getProperty("wave." + waveLevel + ".powerup." +
+              powerIndex + ".type");
 
       if (powerType.equals("engine")) {
         fallingPowerups.add(new Engine(powerX,0, engineImg, arrivalTime, gameProps));
@@ -442,6 +478,11 @@ public class BattleScreen extends Screen {
     }
   }
 
+  /**
+   * Performs collision checks between game objects with a detection for overlapping bounding
+   * boxes. Additionally, updates scoreCount depending on type of enemy killed.
+   * Covers collision between projectiles, power-ups, player and enemy spaceships.
+   */
   private void checkCollisions() {
 
     for (int i = projectiles.size() - 1; i >= 0; i--) {
@@ -546,6 +587,7 @@ public class BattleScreen extends Screen {
           activePowerup.deactivate(player);
         }
 
+        // when no buff is active, do the following
         p.collect();
         activePowerup = p;
         activePowerup.activate(player);

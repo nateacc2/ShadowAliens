@@ -6,7 +6,9 @@ import java.awt.*;
 import java.util.Properties;
 
 /**
- * Main game class that manages initialization of game window and objects
+ * Main game class that manages initialization of game window and objects,
+ * global properties and screen transition
+ * * @author Nathan S.
  */
 public class ShadowAliens extends AbstractGame {
 
@@ -17,7 +19,10 @@ public class ShadowAliens extends AbstractGame {
   public static double screenHeight;
 
   /**
-   * Shadow Aliens Class used to initalises game variables and load game data
+   * Constructs the game instance, configures window dimensions using properties file,
+   * initializes the starting interface screen
+   * @param gameProps Configuration properties file containing setup and layout
+   *                  variables specific to the Shadow Aliens game
    * */
   public ShadowAliens(Properties gameProps) {
     super(
@@ -46,7 +51,10 @@ public class ShadowAliens extends AbstractGame {
     }
   }
 
-  /** Entry point for the game */
+  /** Entry point for the game that checks whether configuration file provided
+   * is valid and boots the main game.
+   * @param args The command line arguments
+   */
   public static void main(String[] args) {
     String path = System.getProperty("gameData");
 
@@ -72,6 +80,9 @@ public class ShadowAliens extends AbstractGame {
 
   }
 
+  /** Method to transition game interfaces between different active screens
+   * @param newScreen next Screen instance passed in to render and update
+   */
   public static void changeScreen(Screen newScreen) {
     gameInstance.currScreen = newScreen;
   }
